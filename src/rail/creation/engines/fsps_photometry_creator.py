@@ -10,7 +10,7 @@ from scipy import interpolate
 
 class FSPSPhotometryCreator(Creator):
     """
-    Derived class of Creator that generate synthetic photometric data from the rest-frame SED model
+    Derived class of Creator that generate synthetic photometric fsps_default_data from the rest-frame SED model
     generated with the FSPSSedModeler class.
     The user is required to provide galaxy redshifts and filter information in an .npy format for the code to run.
     The restframe SEDs are stored in a pickle file or passed as ModelHandle.

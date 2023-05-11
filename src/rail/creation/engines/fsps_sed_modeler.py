@@ -383,7 +383,7 @@ class FSPSSedModeler(Modeler):
                   mwr=3.1, uvb=1.0, wgp1=1, wgp2=1, wgp3=1, duste_gamma=0.01, duste_umin=1.0, duste_qpah=3.5,
                   tabulated_sfh_files=None, tabulated_lsf_files=''):
         """
-        Produce a creation model from which a rest-frame SED and photometry can be generated
+        Produce a creation_examples model from which a rest-frame SED and photometry can be generated
 
         Parameters
         ----------
@@ -427,7 +427,7 @@ class FSPSSedModeler(Modeler):
 
         Notes
         -----
-        Puts the rest-frame SED into the data store under this stages 'model' tag.
+        Puts the rest-frame SED into the fsps_default_data store under this stages 'model' tag.
 
         The units of the resulting rest-frame SED is solar luminosity per Hertz. If the user provides a tabulated
         star-formation history in units of Msun/yr then, the luminosity refers to that emitted by the formed mass
