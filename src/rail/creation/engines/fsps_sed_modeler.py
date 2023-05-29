@@ -46,6 +46,7 @@ class FSPSSedModeler(Modeler):
                           dust_type=Param(int, 2, msg='attenuation curve for dust type, see FSPS manual, '
                                                       'default Calzetti'),
                           tabulated_sfh_key = Param(str, 'tabulated_sfh', msg='tabulated SFH dataset keyword name'),
+                          tabulated_lsf_key = Param(str, 'tabulated_lsf', msg='tabulated LSF dataset keyword name'),
                           redshifts_key = Param(str, 'redshift', msg='Redshift dataset keyword name'),
                           stellar_metallicities_key=Param(str, 'stellar_metallicity',
                                                      msg='galaxy stellar metallicities (log10(Z / Zsun)) '
@@ -88,7 +89,11 @@ class FSPSSedModeler(Modeler):
                           agn_torus_opt_depth_key=Param(str, 'tau_agn', msg='Optical depths of the AGN dust torii'
                                                                                ' dataset keyword name'),
                           physical_units=Param(bool, False), msg='False (True) for rest-frame spectra in units of'
-                                                                 'Lsun/Hz (erg/s/Hz)')
+                                                                 'Lsun/Hz (erg/s/Hz)',
+                          restframe_wave_key=Param(str, 'restframe_wavelengths',
+                                                   msg='Rest-frame wavelength keyword name of the output hdf5 dataset'),
+                          restframe_sed_key=Param(str, 'restframe_seds', msg='Rest-frame SED keyword name of the '
+                                                                             'output hdf5 dataset'))
 
     inputs = [("input", Hdf5Handle)]
     # outputs = [("model", ModelHandle)]
@@ -138,8 +143,8 @@ class FSPSSedModeler(Modeler):
                              fburst=0.0, tburst=11.0, sf_slope=0.0, dust_type=0, dust_tesc=7.0, dust1=0.0, dust2=0.0,
                              dust_clumps=-99., frac_nodust=0.0, frac_obrun=0.0, dust_index=-0.7, dust1_index=-1.0,
                              mwr=3.1, uvb=1.0, wgp1=1, wgp2=1, wgp3=1, duste_gamma=0.01, duste_umin=1.0,
-                             duste_qpah=3.5, fagn=0.0, agn_tau=10.0, tabulated_sfh_files=None,
-                             tabulated_lsf_files=None):
+                             duste_qpah=3.5, fagn=0.0, agn_tau=10.0, tabulated_sfhs=None,
+                             tabulated_lsfs=None):
         """
 
         Parameters
@@ -299,7 +304,7 @@ class FSPSSedModeler(Modeler):
                                         tpagb_norm_type=tpagb_norm_type, dell=dell, delt=delt,
                                         redgb=redgb, agb=agb, fcstar=fcstar, fbhb=fbhb,
                                         sbss=sbss, pagb=pagb, zred=zred[i],
-                                        zmet=zmet[i], logzsol=logzsol[i],
+                                        zmet=zmet, logzsol=logzsol[i],
                                         pmetals=pmetals, imf_type=self.config.imf_type,
                                         imf_upper_limit=imf_upper_limit,
                                         imf_lower_limit=imf_lower_limit, imf1=imf1, imf2=imf2,
@@ -319,28 +324,29 @@ class FSPSSedModeler(Modeler):
                                         mwr=mwr, uvb=uvb, wgp1=wgp1, wgp2=wgp2, wgp3=wgp3,
                                         duste_gamma=duste_gamma[i], duste_umin=duste_umin[i],
                                         duste_qpah=duste_qpah[i],
-                                        fagn=frac_bol_lum_agn[i], agn_tau=agn_torus_opt_depths[i])
+                                        fagn=fagn[i], agn_tau=agn_tau[i])
 
             if self.config.sfh_type == 3:
-
+                assert tabulated_sfhs is not None
                 if self.config.zcontinuous == 3:
                     #age_array, sfr_array, metal_array = np.loadtxt(tabulated_sfh_files[i], usecols=(0, 1, 2),
                     #                                               unpack=True)
-                    age_array, sfr_array, metal_array = tabulated_sfh_files[i]
+                    age_array, sfr_array, metal_array = tabulated_sfhs[i]
                     sp.set_tabular_sfh(age_array, sfr_array, Z=metal_array)
                 elif self.config.zcontinuous == 1:
                     #age_array, sfr_array = np.loadtxt(tabulated_sfh_file[i], usecols=(0, 1), unpack=True)
-                    age_array, sfr_array = tabulated_sfh_files[i]
+                    age_array, sfr_array = tabulated_sfhs[i]
                     sp.set_tabular_sfh(age_array, sfr_array, Z=None)
                 else:
                     raise ValueError
 
             if self.config.smooth_lsf:
                 assert self.config.smooth_velocity is True, 'lsf smoothing only works if smooth_velocity is True'
+                assert tabulated_lsfs is not None
                 # lsf_values = np.loadtxt(tabulated_lsf_file, usecols=(0, 1))
                 # wave = lsf_values[:, 0]  # pragma: no cover
                 # sigma = lsf_values[:, 1]  # pragma: no cover
-                wave, sigma = tabulated_lsf_files[i]
+                wave, sigma = tabulated_lsfs[i]
                 sp.set_lsf(wave, sigma, wmin=self.config.min_wavelength,
                            wmax=self.config.max_wavelength)  # pragma: no cover
 
@@ -380,8 +386,7 @@ class FSPSSedModeler(Modeler):
                   imf3=2.3, vdmc=0.08, mdave=0.5, evtype=-1, masscut=150.0, igm_factor=1.0, tau=1.0, const=0.0,
                   sf_start=0.0, sf_trunc=0.0, fburst=0.0, tburst=11.0, sf_slope=0.0,  dust_tesc=7.0, dust1=0.0,
                   dust2=0.0, dust_clumps=-99., frac_nodust=0.0, frac_obrun=0.0, dust_index=-0.7, dust1_index=-1.0,
-                  mwr=3.1, uvb=1.0, wgp1=1, wgp2=1, wgp3=1, duste_gamma=0.01, duste_umin=1.0, duste_qpah=3.5,
-                  tabulated_sfh_files=None, tabulated_lsf_files=''):
+                  mwr=3.1, uvb=1.0, wgp1=1, wgp2=1, wgp3=1, duste_gamma=0.01, duste_umin=1.0, duste_qpah=3.5):
         """
         Produce a creation_examples model from which a rest-frame SED and photometry can be generated
 
@@ -405,7 +410,7 @@ class FSPSSedModeler(Modeler):
                  tburst=tburst, sf_slope=sf_slope, dust_tesc=dust_tesc, dust1=dust1, dust2=dust2, dust_clumps=dust_clumps,
                  frac_nodust=frac_nodust, frac_obrun=frac_obrun, dust_index=dust_index, dust1_index=dust1_index,
                  mwr=mwr, uvb=uvb, wgp1=wgp1, wgp2=wgp2, wgp3=wgp3, duste_gamma=duste_gamma, duste_umin=duste_umin,
-                 duste_qpah=duste_qpah, tabulated_sfh_files=tabulated_sfh_files, tabulated_lsf_file=tabulated_lsf_files)
+                 duste_qpah=duste_qpah)
         self.finalize()
         model = self.get_handle("model")
         return model
@@ -416,8 +421,7 @@ class FSPSSedModeler(Modeler):
             imf3=2.3, vdmc=0.08, mdave=0.5, evtype=-1, masscut=150.0, igm_factor=1.0, tau=1.0, const=0.0, sf_start=0.0,
             sf_trunc=0.0, fburst=0.0, tburst=11.0, sf_slope=0.0, dust_tesc=7.0, dust1=0.0,
             dust2=0.0, dust_clumps=-99., frac_nodust=0.0, frac_obrun=0.0, dust_index=-0.7, dust1_index=-1.0,
-            mwr=3.1, uvb=1.0, wgp1=1, wgp2=1, wgp3=1, duste_gamma=0.01, duste_umin=1.0, duste_qpah=3.5,
-            tabulated_sfh_files=None, tabulated_lsf_files=''):
+            mwr=3.1, uvb=1.0, wgp1=1, wgp2=1, wgp3=1, duste_gamma=0.01, duste_umin=1.0, duste_qpah=3.5):
         """
         Run method. It Calls `StellarPopulation` from FSPS to create a galaxy rest-frame SED.
 
@@ -449,7 +453,7 @@ class FSPSSedModeler(Modeler):
         gas_metallicities = data[self.config.gas_metallicities_key][()]
 
         if self.config.sfh_type == 3:
-            tabulated_sfh_files = data[self.config.tabulated_sfh_key][()]
+            tabulated_sfhs = data[self.config.tabulated_sfh_key][()]
         elif (self.config.sfh_type == 1) | (self.config.sfh_type == 4):
             tau = data[self.config.tau_model_key][()][:, 0]
             const = data[self.config.tau_model_key][()][:, 1]
@@ -457,6 +461,7 @@ class FSPSSedModeler(Modeler):
             sf_trunc = data[self.config.tau_model_key][()][:, 3]
             fburst = data[self.config.tau_model_key][()][:, 4]
             tburst = data[self.config.tau_model_key][()][:, 5]
+            tabulated_sfhs=None
         elif self.config.sfh_type == 5:
             tau = data[self.config.tau_model_key][()][:, 0]
             const = data[self.config.tau_model_key][()][:, 1]
@@ -465,6 +470,7 @@ class FSPSSedModeler(Modeler):
             fburst = data[self.config.tau_model_key][()][:, 4]
             tburst = data[self.config.tau_model_key][()][:, 5]
             sf_slope = data[self.config.tau_model_key][()][:, 6]
+            tabulated_sfhs=None
         else:
             raise ValueError
 
@@ -484,7 +490,9 @@ class FSPSSedModeler(Modeler):
             duste_qpah = data[self.config.dust_emission_qpah_key][()]
 
         if self.config.smooth_lsf:
-            tabulated_lsf_files = data[self.config.tabulated_lsf_key][()]
+            tabulated_lsfs = data[self.config.tabulated_lsf_key][()]
+        else:
+            tabulated_lsfs=None
 
         frac_bol_lum_agn = data[self.config.fraction_agn_bol_lum_key][()]
         agn_torus_opt_depths = data[self.config.agn_torus_opt_depth_key][()]
@@ -506,7 +514,7 @@ class FSPSSedModeler(Modeler):
                                                                 tpagb_norm_type=tpagb_norm_type, dell=dell, delt=delt,
                                                                 redgb=redgb, agb=agb, fcstar=fcstar, fbhb=fbhb,
                                                                 sbss=sbss, pagb=pagb, zred=redshifts,
-                                                                zmet=metallicities, logzsol=metallicities,
+                                                                zmet=1, logzsol=metallicities,
                                                                 pmetals=pmetals, imf_type=self.config.imf_type,
                                                                 imf_upper_limit=imf_upper_limit,
                                                                 imf_lower_limit=imf_lower_limit, imf1=imf1, imf2=imf2,
@@ -527,10 +535,10 @@ class FSPSSedModeler(Modeler):
                                                                 duste_gamma=duste_gamma, duste_umin=duste_umin,
                                                                 duste_qpah=duste_qpah,
                                                                 fagn=frac_bol_lum_agn, agn_tau=agn_torus_opt_depths,
-                                                                tabulated_sfh_files=tabulated_sfh_files,
-                                                                tabulated_lsf_files=tabulated_lsf_files)
+                                                                tabulated_sfhs=tabulated_sfhs,
+                                                                tabulated_lsfs=tabulated_lsfs)
 
         if self.rank == 0:
-            rest_frame_sed_models = {'wavelength': wavelengths[0], 'restframe_seds': restframe_seds,
-                                     'redshifts': redshifts} # (n_galaxies, n_wavelengths) = (100000000, 4096)
+            rest_frame_sed_models = {self.config.restframe_wave_key: wavelengths[0],
+                                     self.config.restframe_sed_key: restframe_seds} # (n_galaxies, n_wavelengths) = (100000000, 4096)
             self.add_data('model', rest_frame_sed_models)
