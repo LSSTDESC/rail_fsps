@@ -21,12 +21,13 @@ classifiers = [
 dynamic = ["version"]
 dependencies = [
     "fsps",
-    "pz-rail@git+https://github.com/LSSTDESC/RAIL.git@eac/minimal#egg=pz-rail",
+    "pz-rail-base",
     "astropy",
 ]
 
 [project.optional-dependencies]
 dev = [
+    "qp-prob[full]",
     "coverage",
     "pylint",
     "pytest",
