@@ -4,6 +4,7 @@ from rail.core.data import ModelHandle, Hdf5Handle
 from ceci.config import StageParameter as Param
 import fsps
 import numpy as np
+import gc
 
 
 class FSPSSedModeler(Modeler):
@@ -23,7 +24,9 @@ class FSPSSedModeler(Modeler):
 
     name = "FSPS_sed_model"
     config_options = RailStage.config_options.copy()
-    config_options.update(zcontinuous=Param(int, 1, msg='Flag for interpolation in metallicity of SSP before CSP'),
+
+    config_options.update(chunk_size=10000, hdf5_groupname=str,
+                          zcontinuous=Param(int, 1, msg='Flag for interpolation in metallicity of SSP before CSP'),
                           add_agb_dust_model=Param(bool, True,
                                                    msg='Turn on/off adding AGB circumstellar dust contribution to SED'),
                           add_dust_emission=Param(bool, True,
@@ -47,7 +50,6 @@ class FSPSSedModeler(Modeler):
                                                       'default Calzetti'),
                           tabulated_sfh_key = Param(str, 'tabulated_sfh', msg='tabulated SFH dataset keyword name'),
                           tabulated_lsf_key = Param(str, 'tabulated_lsf', msg='tabulated LSF dataset keyword name'),
-                          redshifts_key = Param(str, 'redshift', msg='Redshift dataset keyword name'),
                           stellar_metallicities_key=Param(str, 'stellar_metallicity',
                                                      msg='galaxy stellar metallicities (log10(Z / Zsun)) '
                                                          'dataset keyword name'),
@@ -286,7 +288,7 @@ class FSPSSedModeler(Modeler):
         restframe_wavelengths = {}
         restframe_seds = {}
 
-        for i in self.split_tasks_by_rank(range(len(tage))):
+        for i in range(len(tage)):
             sp = fsps.StellarPopulation(compute_vega_mags=compute_vega_mags,
                                         vactoair_flag=vactoair_flag,
                                         zcontinuous=self.config.zcontinuous,
@@ -386,7 +388,7 @@ class FSPSSedModeler(Modeler):
                   imf3=2.3, vdmc=0.08, mdave=0.5, evtype=-1, masscut=150.0, igm_factor=1.0, tau=1.0, const=0.0,
                   sf_start=0.0, sf_trunc=0.0, fburst=0.0, tburst=11.0, sf_slope=0.0,  dust_tesc=7.0, dust1=0.0,
                   dust2=0.0, dust_clumps=-99., frac_nodust=0.0, frac_obrun=0.0, dust_index=-0.7, dust1_index=-1.0,
-                  mwr=3.1, uvb=1.0, wgp1=1, wgp2=1, wgp3=1, duste_gamma=0.01, duste_umin=1.0, duste_qpah=3.5):
+                  mwr=3.1, uvb=1.0, wgp1=1, wgp2=1, wgp3=1, duste_gamma=0.01, duste_umin=1.0, duste_qpah=3.5,redshifts=np.arange(0.1, 1.1, 0.1)):
         """
         Produce a creation_examples model from which a rest-frame SED and photometry can be generated
 
@@ -410,8 +412,7 @@ class FSPSSedModeler(Modeler):
                  tburst=tburst, sf_slope=sf_slope, dust_tesc=dust_tesc, dust1=dust1, dust2=dust2, dust_clumps=dust_clumps,
                  frac_nodust=frac_nodust, frac_obrun=frac_obrun, dust_index=dust_index, dust1_index=dust1_index,
                  mwr=mwr, uvb=uvb, wgp1=wgp1, wgp2=wgp2, wgp3=wgp3, duste_gamma=duste_gamma, duste_umin=duste_umin,
-                 duste_qpah=duste_qpah)
-        self.finalize()
+                 duste_qpah=duste_qpah,redshifts=redshifts)
         model = self.get_handle("model")
         return model
 
@@ -421,7 +422,7 @@ class FSPSSedModeler(Modeler):
             imf3=2.3, vdmc=0.08, mdave=0.5, evtype=-1, masscut=150.0, igm_factor=1.0, tau=1.0, const=0.0, sf_start=0.0,
             sf_trunc=0.0, fburst=0.0, tburst=11.0, sf_slope=0.0, dust_tesc=7.0, dust1=0.0,
             dust2=0.0, dust_clumps=-99., frac_nodust=0.0, frac_obrun=0.0, dust_index=-0.7, dust1_index=-1.0,
-            mwr=3.1, uvb=1.0, wgp1=1, wgp2=1, wgp3=1, duste_gamma=0.01, duste_umin=1.0, duste_qpah=3.5):
+            mwr=3.1, uvb=1.0, wgp1=1, wgp2=1, wgp3=1, duste_gamma=0.01, duste_umin=1.0, duste_qpah=3.5,redshifts=np.arange(0.1, 1.1, 0.1)):
         """
         Run method. It Calls `StellarPopulation` from FSPS to create a galaxy rest-frame SED.
 
@@ -443,9 +444,30 @@ class FSPSSedModeler(Modeler):
 
         """
 
-        data = self.get_data('input')
 
-        redshifts = data[self.config.redshifts_key][()]
+        iterator = self.input_iterator('input')
+        first = True
+        self._initialize_run()
+        self._output_handle = None
+        for s, e, test_data in iterator:
+            print(f"Process {self.rank} running creator on chunk {s} - {e}")
+            self._process_chunk(s, e, test_data, first, redshifts)
+            first = False
+            # Running garbage collection manually seems to be needed
+            # to avoid memory growth for some estimators
+            gc.collect()
+        self._finalize_run()
+
+    def _process_chunk(self, start, end, data, first, redshifts,compute_vega_mags=False, vactoair_flag=False, compute_light_ages=False, cloudy_dust=False,
+            agb_dust=1.0, tpagb_norm_type=2, dell=0.0, delt=0.0, redgb=1.0, agb=1.0, fcstar=1.0, fbhb=0.0,
+            sbss=0.0, pagb=1.0, pmetals=2.0, imf_upper_limit=120, imf_lower_limit=0.08, imf1=1.3, imf2=2.3,
+            imf3=2.3, vdmc=0.08, mdave=0.5, evtype=-1, masscut=150.0, igm_factor=1.0, tau=1.0, const=0.0, sf_start=0.0,
+            sf_trunc=0.0, fburst=0.0, tburst=11.0, sf_slope=0.0, dust_tesc=7.0, dust1=0.0,
+            dust2=0.0, dust_clumps=-99., frac_nodust=0.0, frac_obrun=0.0, dust_index=-0.7, dust1_index=-1.0,
+            mwr=3.1, uvb=1.0, wgp1=1, wgp2=1, wgp3=1, duste_gamma=0.01, duste_umin=1.0, duste_qpah=3.5):
+        """
+        Calculate the restframe SED for each galaxy using the input parameters.
+        """
         ages = data[self.config.stellar_ages_key][()]
         metallicities = data[self.config.stellar_metallicities_key][()]
         velocity_dispersions = data[self.config.velocity_dispersions_key][()]
@@ -537,8 +559,23 @@ class FSPSSedModeler(Modeler):
                                                                 fagn=frac_bol_lum_agn, agn_tau=agn_torus_opt_depths,
                                                                 tabulated_sfhs=tabulated_sfhs,
                                                                 tabulated_lsfs=tabulated_lsfs)
+        output_bla = {'wavelenghts':wavelengths, 'restframe_seds':restframe_seds}
+        self._do_chunk_output(output_bla, start, end, first)
 
-        if self.rank == 0:
-            rest_frame_sed_models = {self.config.restframe_wave_key: wavelengths[0],
-                                     self.config.restframe_sed_key: restframe_seds} # (n_galaxies, n_wavelengths) = (100000000, 4096)
-            self.add_data('model', rest_frame_sed_models)
+
+
+    def _initialize_run(self):
+        self._output_handle = None
+
+    def _finalize_run(self):
+        self._output_handle.finalize_write()
+
+
+    def _do_chunk_output(self, output_bla, start, end, first):
+        if first:
+            self._output_handle = self.add_handle('model', data = output_bla)
+            self._output_handle.initialize_write(self._input_length, communicator = self.comm)
+        self._output_handle.set_data(output_bla, partial=True)
+        self._output_handle.write_chunk(start, end)
+
+
