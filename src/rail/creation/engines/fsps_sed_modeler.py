@@ -367,16 +367,6 @@ class FSPSSedModeler(Modeler):
                 restframe_sed_Lsun_Hz = restframe_sed_Lsun_Hz[selected_wave_range]
                 restframe_seds[i] = restframe_sed_Lsun_Hz.astype('float64')
 
-        if self.comm is not None:  # pragma: no cover
-            restframe_wavelengths = self.comm.gather(restframe_wavelengths)
-            restframe_seds = self.comm.gather(restframe_seds)
-
-            if self.rank != 0:  # pragma: no cover
-                return None, None
-
-            restframe_wavelengths = {k: v for a in restframe_wavelengths for k, v in a.items()}
-            restframe_seds = {k: v for a in restframe_seds for k, v in a.items()}
-
         restframe_wavelengths = np.array([restframe_wavelengths[i] for i in range(len(tage))])
         restframe_seds = np.array([restframe_seds[i] for i in range(len(tage))])
 
