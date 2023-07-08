@@ -372,7 +372,7 @@ class FSPSSedModeler(Modeler):
 
         return restframe_wavelengths, restframe_seds
 
-    def fit_model(self, compute_vega_mags=False, vactoair_flag=False, compute_light_ages=False, cloudy_dust=False,
+    def fit_model(self, input_data, compute_vega_mags=False, vactoair_flag=False, compute_light_ages=False, cloudy_dust=False,
                   agb_dust=1.0, tpagb_norm_type=2, dell=0.0, delt=0.0, redgb=1.0, agb=1.0, fcstar=1.0, fbhb=0.0,
                   sbss=0.0, pagb=1.0, pmetals=2.0, imf_upper_limit=120, imf_lower_limit=0.08, imf1=1.3, imf2=2.3,
                   imf3=2.3, vdmc=0.08, mdave=0.5, evtype=-1, masscut=150.0, igm_factor=1.0, tau=1.0, const=0.0,
@@ -392,6 +392,8 @@ class FSPSSedModeler(Modeler):
             ModelHandle storing the rest-frame SED model
         """
 
+        self.set_data('input', input_data)
+
         self.run(compute_vega_mags=compute_vega_mags, vactoair_flag=vactoair_flag,
                  compute_light_ages=compute_light_ages, cloudy_dust=cloudy_dust,
                  agb_dust=agb_dust, tpagb_norm_type=tpagb_norm_type, dell=dell, delt=delt, redgb=redgb,
@@ -403,6 +405,8 @@ class FSPSSedModeler(Modeler):
                  frac_nodust=frac_nodust, frac_obrun=frac_obrun, dust_index=dust_index, dust1_index=dust1_index,
                  mwr=mwr, uvb=uvb, wgp1=wgp1, wgp2=wgp2, wgp3=wgp3, duste_gamma=duste_gamma, duste_umin=duste_umin,
                  duste_qpah=duste_qpah,redshifts=redshifts)
+        self.finalize()
+
         model = self.get_handle("model")
         return model
 
@@ -441,20 +445,26 @@ class FSPSSedModeler(Modeler):
         self._output_handle = None
         for s, e, test_data in iterator:
             print(f"Process {self.rank} running creator on chunk {s} - {e}")
-            self._process_chunk(s, e, test_data, first, redshifts)
+            self._process_chunk(s, e, test_data, first, compute_vega_mags=False, vactoair_flag=False, compute_light_ages=False, cloudy_dust=False,
+            agb_dust=1.0, tpagb_norm_type=2, dell=0.0, delt=0.0, redgb=1.0, agb=1.0, fcstar=1.0, fbhb=0.0,
+            sbss=0.0, pagb=1.0, pmetals=2.0, imf_upper_limit=120, imf_lower_limit=0.08, imf1=1.3, imf2=2.3,
+            imf3=2.3, vdmc=0.08, mdave=0.5, evtype=-1, masscut=150.0, igm_factor=1.0, tau=1.0, const=0.0, sf_start=0.0,
+            sf_trunc=0.0, fburst=0.0, tburst=11.0, sf_slope=0.0, dust_tesc=7.0, dust1=0.0,
+            dust2=0.0, dust_clumps=-99., frac_nodust=0.0, frac_obrun=0.0, dust_index=-0.7, dust1_index=-1.0,
+            mwr=3.1, uvb=1.0, wgp1=1, wgp2=1, wgp3=1, duste_gamma=0.01, duste_umin=1.0, duste_qpah=3.5,redshifts=np.arange(0.1, 1.1, 0.1))
             first = False
             # Running garbage collection manually seems to be needed
             # to avoid memory growth for some estimators
             gc.collect()
         self._finalize_run()
 
-    def _process_chunk(self, start, end, data, first, redshifts,compute_vega_mags=False, vactoair_flag=False, compute_light_ages=False, cloudy_dust=False,
+    def _process_chunk(self, start, end, data, first, compute_vega_mags=False, vactoair_flag=False, compute_light_ages=False, cloudy_dust=False,
             agb_dust=1.0, tpagb_norm_type=2, dell=0.0, delt=0.0, redgb=1.0, agb=1.0, fcstar=1.0, fbhb=0.0,
             sbss=0.0, pagb=1.0, pmetals=2.0, imf_upper_limit=120, imf_lower_limit=0.08, imf1=1.3, imf2=2.3,
             imf3=2.3, vdmc=0.08, mdave=0.5, evtype=-1, masscut=150.0, igm_factor=1.0, tau=1.0, const=0.0, sf_start=0.0,
             sf_trunc=0.0, fburst=0.0, tburst=11.0, sf_slope=0.0, dust_tesc=7.0, dust1=0.0,
             dust2=0.0, dust_clumps=-99., frac_nodust=0.0, frac_obrun=0.0, dust_index=-0.7, dust1_index=-1.0,
-            mwr=3.1, uvb=1.0, wgp1=1, wgp2=1, wgp3=1, duste_gamma=0.01, duste_umin=1.0, duste_qpah=3.5):
+            mwr=3.1, uvb=1.0, wgp1=1, wgp2=1, wgp3=1, duste_gamma=0.01, duste_umin=1.0, duste_qpah=3.5,redshifts=np.arange(0.1, 1.1, 0.1)):
         """
         Calculate the restframe SED for each galaxy using the input parameters.
         """
