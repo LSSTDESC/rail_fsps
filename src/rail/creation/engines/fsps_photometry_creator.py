@@ -131,8 +131,8 @@ class FSPSPhotometryCreator(Creator):
             magnitudes = []
 
             for j in range(len(self.filter_transmissions)):
-                filter_wavelength_in_hz = speed_of_light_cm_s / self.filter_wavelengths[j, :]
-                interp_function = interpolate.interp1d(filter_wavelength_in_hz, self.filter_transmissions[j, :],
+                filter_wavelength_in_hz = speed_of_light_cm_s / self.filter_wavelengths[j]
+                interp_function = interpolate.interp1d(filter_wavelength_in_hz, self.filter_transmissions[j],
                                                        bounds_error=False, fill_value=0)
                 filt_interp = interp_function(observedframe_wavelength_in_Hz)
                 numerator = np.trapz(observedframe_sed_erg_s_cm2_Hz * filt_interp / observedframe_wavelength,
