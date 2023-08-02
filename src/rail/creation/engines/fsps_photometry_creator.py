@@ -3,9 +3,11 @@ from rail.core.stage import RailStage
 from rail.core.data import Hdf5Handle
 from ceci.config import StageParameter as Param
 import numpy as np
-from astropy.table import Table
+from rail.core.utils import find_rail_file
 from astropy.cosmology import Planck15, w0waCDM
 from scipy import interpolate
+import os
+import h5py
 
 
 class FSPSPhotometryCreator(Creator):
@@ -19,18 +21,23 @@ class FSPSPhotometryCreator(Creator):
     """
 
     name = "FSPS_Photometry_Creator"
-
+    default_files_folder = find_rail_file(os.path.join('examples_data', 'creation_data', 'data', 'fsps_default_data'))
     config_options = RailStage.config_options.copy()
-    config_options.update(filter_data=Param(str, 'lsst_filters.npy', msg='npy file containing the structured numpy '
-                                                                         'array of the survey filter wavelengths and'
-                                                                         ' transmissions'),
-                          rest_frame_wavelengths_key = Param(str, 'wavelength', msg='Rest-frame wavelengths dataset'
-                                                                                    'keyword name'),
-                          rest_frame_sed_models=Param(str, 'restframe_seds.hdf5',
-                                                      msg='Rest-frame seds hdf5 filename'),
-                          rest_frame_sed_models_key=Param(str, 'restframe_seds',
-                                                      msg='Rest-frame seds dataset keyword name'),
-                          redshifts_key=Param(str, 'redshifts', msg='Redshifts dataset keyword name'),
+    config_options.update(redshift_key=Param(str, 'redshifts', msg='Redshift keyword name of the hdf5 dataset '
+                                                                   'containing rest-frame SEDs'),
+                          restframe_sed_key=Param(str, 'restframe_seds', msg='Rest-frame SED keyword name of the '
+                                                                             'hdf5 dataset containing rest-frame SEDs'),
+                          restframe_wave_key=Param(str, 'wavelength', msg='Rest-frame wavelengths keyword name of the'
+                                                                          'hdf5 dataset containing rest-frame SEDs'),
+                          apparent_mags_key=Param(str, 'apparent_mags', msg='Apparent magnitudes keyword name of the '
+                                                                            'output hdf5 dataset'),
+                          filter_folder=Param(str, os.path.join(default_files_folder, 'filters'),
+                                              msg='Folder containing filter transmissions'),
+                          instrument_name=Param(str, 'lsst', msg='Instrument name as prefix to filter transmission'
+                                                                 ' files'),
+                          wavebands=Param(str, 'u,g,r,i,z,y', msg='Comma-separated list of wavebands'),
+                          filter_wave_key=Param(str, 'wave', msg=''),
+                          filter_transm_key=Param(str, 'transmission', msg=''),
                           Om0=Param(float, 0.3, msg='Omega matter at current time'),
                           Ode0=Param(float, 0.7, msg='Omega dark energy at current time'),
                           w0=Param(float, -1, msg='Dark energy equation-of-state parameter at current time'),
@@ -56,6 +63,19 @@ class FSPSPhotometryCreator(Creator):
         """
         RailStage.__init__(self, args, comm=comm)
 
+        if not os.path.isdir(self.config.filter_folder):
+            raise OSError("File {self.config.filter_folder} not found")
+        self.wavebands = self.config.wavebands.split(',')
+        filter_wavelengths, filter_transmissions = [], []
+        for waveband in self.wavebands:
+            with h5py.File(os.path.join(self.config.filter_folder,
+                                        '{}_{}_transmission.h5'.format(self.config.instrument_name, waveband)),
+                           'r') as h5table:
+                filter_transmissions.append(h5table[self.config.filter_transm_key][()])
+                filter_wavelengths.append(h5table[self.config.filter_wave_key][()])
+        self.filter_transmissions = np.array(filter_transmissions, dtype=object)
+        self.filter_wavelengths = np.array(filter_wavelengths, dtype=object)
+
         if self.config.use_planck_cosmology:
             self.cosmology = Planck15
         else:
@@ -72,46 +92,14 @@ class FSPSPhotometryCreator(Creator):
             raise ValueError("The dimensionless Hubble constant {self.config.h} is outside of allowed"
                              " range 0 < h < 1")
 
-        self.filter_data = np.load(self.config.filter_data)
-        self.filter_names = np.array([key for key in self.filter_data.dtype.fields
-                                      if 'wave' in key])
-        self.filter_wavelengths = np.array([self.filter_data[key] for key in self.filter_data.dtype.fields
-                                            if 'wave' in key])
-        self.filter_transmissions = np.array([self.filter_data[key] for key in self.filter_data.dtype.fields
-                                              if 'trans' in key])
-
-        if not isinstance(args, dict):  # pragma: no cover
-            args = vars(args)
-        self.open_model(**args)
-
-    def open_model(self, **kwargs):
-        """Load the mode and/or attach it to this Creator
-
-        Keywords
-        --------
-        model : `str`
-            Either a path pointing to a file that can be read to obtain the trained model,
-            or a `ModelHandle` providing access to the trained model.
-
-        Returns
-        -------
-        self.model : `object`
-            The object encapsulating the trained model.
+    def _compute_apparent_magnitudes(self, rest_frame_wavelengths, rest_frame_seds, redshifts):
         """
 
-        if isinstance(self.config.rest_frame_sed_models, str):  # pragma: no cover
-            self.model = self.set_data("model", data=None, path=self.config.rest_frame_sed_models)
-            self.config["model"] = self.config.rest_frame_sed_models
-            return self.model
-
-        if isinstance(self.config.rest_frame_sed_models, Hdf5Handle):  # pragma: no cover
-            if self.config.rest_frame_sed_models.has_path:
-                self.config["model"] = self.config.rest_frame_sed_models.path
-                self.model = self.set_data("model", self.config.rest_frame_sed_models)
-            return self.model
-
-    def _get_apparent_magnitudes(self):
-        """
+        Parameters
+        ----------
+        rest_frame_wavelengths: numpy.array
+        rest_frame_seds: numpy.array
+        redshifts: numpy.array
 
         Returns
         -------
@@ -122,24 +110,23 @@ class FSPSPhotometryCreator(Creator):
 
         apparent_magnitudes = {}
 
-        for i in self.split_tasks_by_rank(range(len(self.model[self.config.rest_frame_sed_models_key]))):
+        for i in self.split_tasks_by_rank(range(len(redshifts))):
 
             if self.config.physical_units:
-                restframe_sed = self.model[self.config.rest_frame_sed_models_key][i]
+                restframe_sed = rest_frame_seds[i]
             else:
-                solar_luminosity_erg_s = 3.826 * 10**33
-                restframe_sed = self.model[self.config.rest_frame_sed_models_key][i] * solar_luminosity_erg_s
+                solar_luminosity_erg_s = 3.8275 * 10 ** 33  # Prša et al. 2016
+                restframe_sed = rest_frame_seds[i] * solar_luminosity_erg_s
 
             Mpc_in_cm = 3.08567758128 * 10 ** 24
             speed_of_light_cm_s = 2.9979245800 * 10 ** 18
-            lum_dist_cm = self.cosmology.luminosity_distance(self.model[self.config.redshifts_key][i]).value * Mpc_in_cm
+            lum_dist_cm = self.cosmology.luminosity_distance(redshifts[i]).value * Mpc_in_cm
 
-            observedframe_sed_erg_s_cm2_Hz = (1 + self.model[self.config.redshifts_key][i]) ** 2 * restframe_sed / \
-                (4 * np.pi * (1 + self.model[self.config.redshifts_key][i]) * lum_dist_cm ** 2)
+            observedframe_sed_erg_s_cm2_Hz = (1 + redshifts[i]) ** 2 * restframe_sed / \
+                (4 * np.pi * (1 + redshifts[i]) * lum_dist_cm ** 2)
 
-            observedframe_wavelength = self.model[self.config.rest_frame_wavelengths_key] * \
-                (1 + self.model[self.config.redshifts_key][i])
-            observedframe_wavelength_in_Hz = 2.9979245800 * 10 ** 18 / observedframe_wavelength
+            observedframe_wavelength = rest_frame_wavelengths * (1 + redshifts[i])
+            observedframe_wavelength_in_Hz = speed_of_light_cm_s / observedframe_wavelength
 
             magnitudes = []
 
@@ -166,33 +153,35 @@ class FSPSPhotometryCreator(Creator):
             apparent_magnitudes = {k: v for a in apparent_magnitudes for k, v in a.items()}
 
         apparent_magnitudes = np.array([apparent_magnitudes[i]
-                                        for i in range(len(self.model[self.config.rest_frame_sed_models_key]))])
+                                        for i in range(len(redshifts))])
 
         return apparent_magnitudes
 
-    def sample(self, **kwargs):
+    def sample(self, seed: int = None, input_data=None, **kwargs):
         r"""
-        Creates observed and absolute magnitudes for population of galaxies and stores them into Fits table.
-
-        This is a method for running in interactive mode.
-        In pipeline mode, the subclass `run` method will be called by itself.
+        Creates observed magnitudes for the population of galaxies and stores them into an Hdf5Handle.
 
         Parameters
         ----------
+        seed: int
+            The random seed to control sampling
+        input_data: Hdf5Handle
+            Hdf5Handle containing the rest-frame SED models.
 
         Returns
         -------
-        output: astropy.table.Table
-            Fits table storing galaxy magnitudes and redshifts.
+        output: Hdf5Handle
+            Hdf5Handle storing the apparent magnitudes and redshifts of galaxies.
 
         Notes
         -----
-        This method calls the `run` method.
-        Finally, the `FitsHandle` associated to the `output` tag is returned.
+        This method puts  `seed` into the stage configuration data, which makes them available to other methods.
+        It then calls the `run` method. Finally, the `Hdf5Handle` associated to the `output` tag is returned.
 
         """
-
+        self.config["seed"] = seed
         self.config.update(**kwargs)
+        self.set_data('model', input_data)
         self.run()
         self.finalize()
         output = self.get_handle("output")
@@ -202,17 +191,22 @@ class FSPSPhotometryCreator(Creator):
         """
         This function computes apparent AB magnitudes in the provided wavebands for all the galaxies
         in the population having rest-frame SEDs computed by FSPS.
-        It then stores magnitudes, redshifts and the galaxy indices into an astropy.table.Table.
+        It then stores apparent magnitudes, redshifts and running indices into an Hdf5Handle.
 
         Returns
         -------
 
         """
+        self.model = self.get_data('model')
+        redshifts = self.model[self.config.redshift_key][()]
+        rest_frame_seds = self.model[self.config.restframe_sed_key][()]
+        rest_frame_wave = self.model[self.config.restframe_wave_key][()]
 
-        apparent_magnitudes = self._get_apparent_magnitudes()
+        apparent_magnitudes = self._compute_apparent_magnitudes(rest_frame_wave, rest_frame_seds, redshifts)
 
-        idxs = np.arange(1, self.model[self.config.redshifts_key] + 1, 1, dtype=int)
+        idxs = np.arange(1, len(redshifts) + 1, 1, dtype=int)
 
         if self.rank == 0:
-            output_values = {'id': idxs, 'z': self.model[self.config.redshifts_key], 'app_mags': apparent_magnitudes}
-            self.add_data('output', output_values)
+            output_mags = {'id': idxs, self.config.redshifts_key: redshifts,
+                           self.config.apparent_mags_key: apparent_magnitudes}
+            self.add_data('output', output_mags)
