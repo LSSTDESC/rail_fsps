@@ -33,6 +33,7 @@ dev = [
     "pytest",
     "pytest-cov",
     "yamllint",
+    "h5py"
 ]
 
 [build-system]
