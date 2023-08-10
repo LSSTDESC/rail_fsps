@@ -2,16 +2,13 @@ import os
 if "SPS_HOME" not in os.environ:
     os.environ["SPS_HOME"] = "/opt/hostedtoolcache/Python/fsps"
 
-import tables_io
 from rail.creation.engines import FSPSSedModeler
 import pytest
-from rail.core.stage import RailStage
-import numpy as np
+import rail.fsps
 
-from rail.core.utils import RAILDIR
-test_data = os.path.join(RAILDIR, 'rail', 'examples_data', 'creation_data', 'data', 'fsps_default_data',
-                         'test_fsps_sed.fits')
-
+RAIL_FSPS_DIR = os.path.abspath(os.path.join(os.path.dirname(rail.fsps.__file__), '..', '..'))
+default_rail_fsps_files_folder = os.path.join(RAIL_FSPS_DIR, 'rail', 'examples_data', 'creation_data', 'data',
+                                              'fsps_default_data')
 
 @pytest.mark.parametrize(
     "settings,error",
@@ -23,7 +20,7 @@ test_data = os.path.join(RAILDIR, 'rail', 'examples_data', 'creation_data', 'dat
 def test_FSPSSedGenerator_bad_wavelength_range(settings, error):
     """Test bad wavelength range that should raise Value and Type errors."""
     with pytest.raises(error):
-        FSPSSedModeler.make_stage(name='sed_generator_test', **settings)
+        FSPSSedModeler.make_stage(name='FSPSSedModeler', **settings)
 
 
 @pytest.mark.parametrize(
@@ -35,7 +32,7 @@ def test_FSPSSedGenerator_bad_wavelength_range(settings, error):
 def test_FSPSSedGenerator_bad_zcontinous(settings, error):
     """Test bad wavelength range that should raise Value and Type errors."""
     with pytest.raises(error):
-        FSPSSedModeler.make_stage(name='sed_generator_test', **settings)
+        FSPSSedModeler.make_stage(name='FSPSSedModeler', **settings)
 
 
 @pytest.mark.parametrize(
@@ -47,7 +44,7 @@ def test_FSPSSedGenerator_bad_zcontinous(settings, error):
 def test_FSPSSedGenerator_bad_imf_type(settings, error):
     """Test bad wavelength range that should raise Value and Type errors."""
     with pytest.raises(error):
-        FSPSSedModeler.make_stage(name='sed_generator_test', **settings)
+        FSPSSedModeler.make_stage(name='FSPSSedModeler', **settings)
 
 
 @pytest.mark.parametrize(
@@ -59,7 +56,7 @@ def test_FSPSSedGenerator_bad_imf_type(settings, error):
 def test_FSPSSedGenerator_bad_sfh_type(settings, error):
     """Test bad wavelength range that should raise Value and Type errors."""
     with pytest.raises(error):
-        FSPSSedModeler.make_stage(name='sed_generator_test', **settings)
+        FSPSSedModeler.make_stage(name='FSPSSedModeler', **settings)
 
 
 @pytest.mark.parametrize(
@@ -71,4 +68,4 @@ def test_FSPSSedGenerator_bad_sfh_type(settings, error):
 def test_FSPSSedGenerator_bad_dust_type(settings, error):
     """Test bad wavelength range that should raise Value and Type errors."""
     with pytest.raises(error):
-        FSPSSedModeler.make_stage(name='sed_generator_test', **settings)
+        FSPSSedModeler.make_stage(name='FSPSSedModeler', **settings)
