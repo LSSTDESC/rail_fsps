@@ -76,12 +76,6 @@ class FSPSPhotometryCreator(Creator):
         self.filter_transmissions = np.array(filter_transmissions, dtype=object)
         self.filter_wavelengths = np.array(filter_wavelengths, dtype=object)
 
-        if self.config.use_planck_cosmology:
-            self.cosmology = Planck15
-        else:
-            self.cosmology = w0waCDM(self.config.h * 100, self.config.Om0, self.config.Ode0,
-                                     w0=self.config.w0, wa=self.config.wa)
-
         if (self.config.Om0 < 0.) | (self.config.Om0 > 1.):
             raise ValueError("The mass density at the current time {self.config.Om0} is outside of allowed"
                              " range 0. < Om0 < 1.")
@@ -91,6 +85,12 @@ class FSPSPhotometryCreator(Creator):
         if (self.config.h < 0.) | (self.config.h > 1.):
             raise ValueError("The dimensionless Hubble constant {self.config.h} is outside of allowed"
                              " range 0 < h < 1")
+
+        if self.config.use_planck_cosmology:
+            self.cosmology = Planck15
+        else:
+            self.cosmology = w0waCDM(self.config.h * 100, self.config.Om0, self.config.Ode0,
+                                     w0=self.config.w0, wa=self.config.wa)
 
     def _compute_apparent_magnitudes(self, rest_frame_wavelengths, rest_frame_seds, redshifts):
         """

@@ -2,7 +2,7 @@ import os
 if "SPS_HOME" not in os.environ:
     os.environ["SPS_HOME"] = "/opt/hostedtoolcache/Python/fsps"
 
-from rail.creation.engines import FSPSSedModeler
+from rail.creation.engines import FSPSSedModeler, FSPSPhotometryCreator
 import pytest
 import rail.fsps
 
@@ -69,3 +69,57 @@ def test_FSPSSedGenerator_bad_dust_type(settings, error):
     """Test bad wavelength range that should raise Value and Type errors."""
     with pytest.raises(error):
         FSPSSedModeler.make_stage(name='FSPSSedModeler', **settings)
+
+
+@pytest.mark.parametrize(
+    "settings,error",
+    [
+        ({"filter_folder": os.path.join(default_rail_fsps_files_folder, 'test_fsps_sed.fits')}, OSError),
+    ],
+)
+def test_FSPSPhotometryCreator_bad_filter_folder(settings, error):
+    """Test bad filter folder that should raise OS errors."""
+    with pytest.raises(error):
+        FSPSPhotometryCreator.make_stage(name='FSPSPhotometryCreator', **settings)
+
+
+@pytest.mark.parametrize(
+    "settings,error",
+    [
+        ({"Om0": 2}, ValueError),
+    ],
+)
+def test_FSPSPhotometryCreator_bad_Om0(settings, error):
+    """Test bad filter folder that should raise Value errors."""
+    with pytest.raises(error):
+        FSPSPhotometryCreator.make_stage(name='FSPSPhotometryCreator',
+                                         filter_folder=os.path.join(default_rail_fsps_files_folder, 'filters'),
+                                         **settings)
+
+
+@pytest.mark.parametrize(
+    "settings,error",
+    [
+        ({"Ode0": 2}, ValueError),
+    ],
+)
+def test_FSPSPhotometryCreator_bad_Ode0(settings, error):
+    """Test bad filter folder that should raise Value errors."""
+    with pytest.raises(error):
+        FSPSPhotometryCreator.make_stage(name='FSPSPhotometryCreator',
+                                         filter_folder=os.path.join(default_rail_fsps_files_folder, 'filters'),
+                                         **settings)
+
+
+@pytest.mark.parametrize(
+    "settings,error",
+    [
+        ({"h": 2}, ValueError),
+    ],
+)
+def test_FSPSPhotometryCreator_bad_h(settings, error):
+    """Test bad filter folder that should raise Value errors."""
+    with pytest.raises(error):
+        FSPSPhotometryCreator.make_stage(name='FSPSPhotometryCreator',
+                                         filter_folder=os.path.join(default_rail_fsps_files_folder, 'filters'),
+                                         **settings)
