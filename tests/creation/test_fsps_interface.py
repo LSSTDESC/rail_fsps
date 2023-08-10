@@ -131,7 +131,7 @@ def test_FSPSPhotometryCreator_bad_h(settings, error):
 def test_FSPSSedModeler():
     DS = RailStage.data_store
     DS.__class__.allow_overwrite = True
-    trainFile = os.path.join(default_rail_fsps_files_folder, 'input_galaxy_properties_fsps.hdf5')
+    trainFile = os.path.join(default_rail_fsps_files_folder, 'input_galaxy_properties_fsps.h5')
     training_data = DS.read_file("training_data", TableHandle, trainFile)
     fspssedmodeler = FSPSSedModeler.make_stage(chunk_size=10, hdf5_groupname='model', name='FSPSSedModeler',
                                                compute_vega_mags=False, vactoair_flag=False,
