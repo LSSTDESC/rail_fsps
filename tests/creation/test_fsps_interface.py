@@ -168,3 +168,22 @@ def test_FSPSSedModeler():
                                                restframe_sed_key='restframe_seds')
     fspssedmodel = fspssedmodeler.fit_model(training_data)
     assert len(fspssedmodel.data['restframe_seds']) == 10
+
+
+def test_FSPSPhotometryCreator():
+    DS = RailStage.data_store
+    DS.__class__.allow_overwrite = True
+    trainFile = os.path.join(default_rail_fsps_files_folder, 'model_FSPSSedModeler.hdf5')
+    training_data = DS.read_file("training_data", TableHandle, trainFile)
+    fspsphotometrycreator = FSPSPhotometryCreator.make_stage(redshifts_key='redshifts',
+                                                             restframe_sed_key='restframe_seds',
+                                                             restframe_wave_key='restframe_wavelengths',
+                                                             apparent_mags_key='apparent_mags',
+                                                             filter_folder=os.path.join(default_rail_fsps_files_folder,
+                                                                                        'filters'),
+                                                             instrument_name='lsst', wavebands='u,g,r,i,z,y',
+                                                             filter_wave_key='wave', filter_transm_key='transmission',
+                                                             Om0=0.3, Ode0=0.7, w0=-1, wa=0.0, h=0.7,
+                                                             use_planck_cosmology=True, physical_units=False)
+    fspsphotometry = fspsphotometrycreator.sample(input_data=training_data)
+    assert len(fspsphotometry.data['apparent_mags'] == 10)
