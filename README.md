@@ -1,12 +1,13 @@
 [![DOI](https://zenodo.org/badge/223043497.svg)](https://zenodo.org/badge/latestdoi/223043497)
 [![PyPI](https://img.shields.io/pypi/v/pz-rail-fsps?color=blue&logo=pypi&logoColor=white)](https://pypi.org/project/pz-rail-fsps/)
-[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/LSSTDESC/rail_fsps/smoke-test.yml)](https://github.com/LSSTDESC/rail_fsps/actions/workflows/smoke-test.yml)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/LSSTDESC/rail_fsps/main.yml)](https://github.com/LSSTDESC/rail_fsps/actions/workflows/main.yml)
 
 # rail_fsps
 
-RAIL interface to FSPS code
+RAIL interface to fsps
 
-**FSPS** - Flexible Stellar Population Synthesis.
+**FSPS** - Flexible stellar population synthesis. This is a traditional way to forward-model mock photometric catalogs from physically-motivated galaxy
+spectra.
 
 # RAIL: Redshift Assessment Infrastructure Layers
 
