@@ -5,10 +5,13 @@ if "SPS_HOME" not in os.environ:
 from rail.creation.engines import FSPSSedModeler, FSPSPhotometryCreator
 import pytest
 import rail.fsps
+from rail.core.stage import RailStage
+from rail.core.data import TableHandle
 
 RAIL_FSPS_DIR = os.path.abspath(os.path.join(os.path.dirname(rail.fsps.__file__), '..', '..'))
 default_rail_fsps_files_folder = os.path.join(RAIL_FSPS_DIR, 'rail', 'examples_data', 'creation_data', 'data',
                                               'fsps_default_data')
+
 
 @pytest.mark.parametrize(
     "settings,error",
@@ -17,7 +20,7 @@ default_rail_fsps_files_folder = os.path.join(RAIL_FSPS_DIR, 'rail', 'examples_d
         ({"max_wavelength": -1}, ValueError),
     ],
 )
-def test_FSPSSedGenerator_bad_wavelength_range(settings, error):
+def test_FSPSSedModeler_bad_wavelength_range(settings, error):
     """Test bad wavelength range that should raise Value and Type errors."""
     with pytest.raises(error):
         FSPSSedModeler.make_stage(name='FSPSSedModeler', **settings)
@@ -29,7 +32,7 @@ def test_FSPSSedGenerator_bad_wavelength_range(settings, error):
         ({"zcontinuous": 4}, ValueError),
     ],
 )
-def test_FSPSSedGenerator_bad_zcontinous(settings, error):
+def test_FSPSSedModeler_bad_zcontinous(settings, error):
     """Test bad wavelength range that should raise Value and Type errors."""
     with pytest.raises(error):
         FSPSSedModeler.make_stage(name='FSPSSedModeler', **settings)
@@ -41,7 +44,7 @@ def test_FSPSSedGenerator_bad_zcontinous(settings, error):
         ({"imf_type": 6}, ValueError),
     ],
 )
-def test_FSPSSedGenerator_bad_imf_type(settings, error):
+def test_FSPSSedModeler_bad_imf_type(settings, error):
     """Test bad wavelength range that should raise Value and Type errors."""
     with pytest.raises(error):
         FSPSSedModeler.make_stage(name='FSPSSedModeler', **settings)
@@ -53,7 +56,7 @@ def test_FSPSSedGenerator_bad_imf_type(settings, error):
         ({"sfh_type": 6}, ValueError),
     ],
 )
-def test_FSPSSedGenerator_bad_sfh_type(settings, error):
+def test_FSPSSedModeler_bad_sfh_type(settings, error):
     """Test bad wavelength range that should raise Value and Type errors."""
     with pytest.raises(error):
         FSPSSedModeler.make_stage(name='FSPSSedModeler', **settings)
@@ -65,7 +68,7 @@ def test_FSPSSedGenerator_bad_sfh_type(settings, error):
         ({"dust_type": 7}, ValueError),
     ],
 )
-def test_FSPSSedGenerator_bad_dust_type(settings, error):
+def test_FSPSSedModeler_bad_dust_type(settings, error):
     """Test bad wavelength range that should raise Value and Type errors."""
     with pytest.raises(error):
         FSPSSedModeler.make_stage(name='FSPSSedModeler', **settings)
@@ -123,3 +126,45 @@ def test_FSPSPhotometryCreator_bad_h(settings, error):
         FSPSPhotometryCreator.make_stage(name='FSPSPhotometryCreator',
                                          filter_folder=os.path.join(default_rail_fsps_files_folder, 'filters'),
                                          **settings)
+
+
+def test_FSPSSedModeler():
+    DS = RailStage.data_store
+    DS.__class__.allow_overwrite = True
+    trainFile = os.path.join(default_rail_fsps_files_folder, 'input_galaxy_properties_fsps.hdf5')
+    training_data = DS.read_file("training_data", TableHandle, trainFile)
+    fspssedmodeler = FSPSSedModeler.make_stage(chunk_size=10, hdf5_groupname='model', name='FSPSSedModeler',
+                                               compute_vega_mags=False, vactoair_flag=False,
+                                               zcontinuous=1, add_agb_dust_model=True,
+                                               add_dust_emission=True, add_igm_absorption=True,
+                                               add_neb_emission=True, add_neb_continuum=True,
+                                               add_stellar_remnants=True, compute_light_ages=False,
+                                               nebemlineinspec=True, smooth_velocity=True,
+                                               smooth_lsf=False, cloudy_dust=False,
+                                               agb_dust=1.0, tpagb_norm_type=2, dell=0.0,
+                                               delt=0.0, redgb=1.0, agb=1.0, fcstar=1.0, sbss=0.0,
+                                               fbhb=0.0, pagb=1.0, redshifts_key='redshifts',
+                                               zmet_key='zmet', stellar_metallicities_key='stellar_metallicity',
+                                               pmetals_key='pmetals', imf_type=1, imf_upper_limit=120.,
+                                               imf_lower_limit=0.08, imf1=1.3, imf2=2.3, imf3=2.3, vdmc=0.08,
+                                               mdave=0.5, evtype=-1, use_wr_spectra=1, logt_wmb_hot=0.0, masscut=150.0,
+                                               velocity_dispersions_key='stellar_velocity_dispersion',
+                                               min_wavelength=3000,
+                                               max_wavelength=10000, gas_ionizations_key='gas_ionization',
+                                               gas_metallicities_key='gas_metallicity', igm_factor=1.0, sfh_type=3,
+                                               tau_key='tau', const_key='const', sf_start_key='sf_start',
+                                               sf_trunc_key='sf_trunc', stellar_ages_key='stellar_age',
+                                               fburst_key='fburst', tburst_key='tburst', sf_slope_key='sf_slope',
+                                               dust_type=2, dust_tesc=7.0, dust_birth_cloud_key='dust1_birth_cloud',
+                                               dust_diffuse_key='dust2_diffuse', dust_clumps=-99, frac_nodust=0.0,
+                                               frac_obrun=0.0, dust_index_key='dust_index',
+                                               dust_powerlaw_modifier_key='dust_calzetti_modifier', mwr_key='mwr',
+                                               uvb_key='uvb', wgp1_key='wgp1', wgp2=1, wgp3=1,
+                                               dust_emission_gamma_key='dust_gamma', dust_emission_umin_key='dust_umin',
+                                               dust_emission_qpah_key='dust_qpah', fraction_agn_bol_lum_key='f_agn',
+                                               agn_torus_opt_depth_key='tau_agn', tabulated_sfh_key='tabulated_sfh',
+                                               tabulated_lsf_key='tabulated_lsf', physical_units=False,
+                                               restframe_wave_key='restframe_wavelengths',
+                                               restframe_sed_key='restframe_seds')
+    fspssedmodel = fspssedmodeler.fit_model(training_data)
+    assert len(fspssedmodel.data['restframe_seds']) == 10
