@@ -23,6 +23,7 @@ dependencies = [
     "fsps",
     "pz-rail-base",
     "astropy",
+    "h5py"
 ]
 
 [project.optional-dependencies]
@@ -33,7 +34,6 @@ dev = [
     "pytest",
     "pytest-cov",
     "yamllint",
-    "h5py"
 ]
 
 [build-system]
