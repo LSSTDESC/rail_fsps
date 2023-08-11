@@ -1,4 +1,5 @@
 import os
+import subprocess
 if "SPS_HOME" not in os.environ:
     os.environ["SPS_HOME"] = "/opt/hostedtoolcache/Python/python-fsps/src/fsps/libfsps"
 
@@ -148,10 +149,13 @@ def test_FSPSPhotometryCreator():
 
 
 def test_FSPSSedModeler():
-    os.system('pip uninstall fsps')
-    os.system('git clone --recursive https://github.com/dfm/python-fsps.git /opt/hostedtoolcache/Python/python-fsps')
+    subprocess.run(["pip", "uninstall", "fsps"], capture_output=True)
+    # os.system('pip uninstall fsps')
+    subprocess.run(["git", "clone", "--recursive", "https://github.com/dfm/python-fsps.git", "/opt/hostedtoolcache/Python/python-fsps"], capture_output=True)
+    #os.system('git clone --recursive https://github.com/dfm/python-fsps.git /opt/hostedtoolcache/Python/python-fsps')
     #os.system('cd /opt/hostedtoolcache/Python/python-fsps')
-    os.system('python -m pip install /opt/hostedtoolcache/Python/python-fsps/setup.py')
+    #os.system('python -m pip install /opt/hostedtoolcache/Python/python-fsps/setup.py')
+    subprocess.run(["python", "-m", "pip", "install", "/opt/hostedtoolcache/Python/python-fsps/setup.py"], capture_output=True)
     DS = RailStage.data_store
     DS.__class__.allow_overwrite = True
     trainFile = os.path.join(default_rail_fsps_files_folder, 'input_galaxy_properties_fsps.hdf5')
