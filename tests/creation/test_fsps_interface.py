@@ -151,8 +151,7 @@ def test_FSPSSedModeler():
     subprocess.run(["pip", "uninstall", "fsps"], capture_output=True)
     subprocess.run(["git", "clone", "--recursive", "https://github.com/dfm/python-fsps.git",
                     "/opt/hostedtoolcache/Python/python-fsps"], capture_output=True)
-    subprocess.run(["cd", "/opt/hostedtoolcache/Python/python-fsps"], capture_output=True)
-    subprocess.run(["python", "-m", "pip", "install", "."])
+    subprocess.run(["python", "-m", "pip", "install", "/opt/hostedtoolcache/Python/python-fsps/setup.py"])
     DS = RailStage.data_store
     DS.__class__.allow_overwrite = True
     trainFile = os.path.join(default_rail_fsps_files_folder, 'input_galaxy_properties_fsps.hdf5')
