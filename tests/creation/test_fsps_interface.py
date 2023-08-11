@@ -150,8 +150,8 @@ def test_FSPSPhotometryCreator():
 def test_FSPSSedModeler():
     os.system('pip uninstall fsps')
     os.system('git clone --recursive https://github.com/dfm/python-fsps.git /opt/hostedtoolcache/Python/python-fsps')
-    os.system('cd /opt/hostedtoolcache/Python/python-fsps')
-    os.system('python -m pip install .')
+    #os.system('cd /opt/hostedtoolcache/Python/python-fsps')
+    os.system('python -m pip install /opt/hostedtoolcache/Python/python-fsps/setup.py')
     DS = RailStage.data_store
     DS.__class__.allow_overwrite = True
     trainFile = os.path.join(default_rail_fsps_files_folder, 'input_galaxy_properties_fsps.hdf5')
