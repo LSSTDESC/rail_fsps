@@ -1,6 +1,6 @@
 import os
 if "SPS_HOME" not in os.environ:
-    os.environ["SPS_HOME"] = "/opt/hostedtoolcache/Python/fsps"
+    os.environ["SPS_HOME"] = "/opt/hostedtoolcache/Python/python-fsps/src/fsps/libfsps"
 
 from rail.creation.engines import FSPSSedModeler, FSPSPhotometryCreator
 import pytest
@@ -148,6 +148,10 @@ def test_FSPSPhotometryCreator():
 
 
 def test_FSPSSedModeler():
+    os.system('pip uninstall fsps')
+    os.system('git clone --recursive https://github.com/dfm/python-fsps.git /opt/hostedtoolcache/Python')
+    os.system('cd /opt/hostedtoolcache/Python/python-fsps')
+    os.system('python -m pip install .')
     DS = RailStage.data_store
     DS.__class__.allow_overwrite = True
     trainFile = os.path.join(default_rail_fsps_files_folder, 'input_galaxy_properties_fsps.hdf5')
@@ -187,4 +191,3 @@ def test_FSPSSedModeler():
                                                restframe_sed_key='restframe_seds')
     fspssedmodel = fspssedmodeler.fit_model(training_data)
     assert len(fspssedmodel.data['restframe_seds']) == 10
-
