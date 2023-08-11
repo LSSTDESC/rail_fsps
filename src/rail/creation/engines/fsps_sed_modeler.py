@@ -2,16 +2,15 @@ from rail.creation.engine import Modeler
 from rail.core.stage import RailStage
 from rail.core.data import ModelHandle, Hdf5Handle
 from ceci.config import StageParameter as Param
-import fsps
-# try:
-#     import fsps
-# except RuntimeError:
-#     print('Install FSPS with the following commands:\n'
-#           'pip uninstall fsps\n'
-#           'git clone --recursive https://github.com/dfm/python-fsps.git\n'
-#           'cd python-fsps\n'
-#           'python -m pip install .\n'
-#           'export SPS_HOME=$(pwd)/src/fsps/libfsps\n')
+try:
+    import fsps
+except RuntimeError:
+    print('Install FSPS with the following commands:\n'
+          'pip uninstall fsps\n'
+          'git clone --recursive https://github.com/dfm/python-fsps.git\n'
+          'cd python-fsps\n'
+          'python -m pip install .\n'
+          'export SPS_HOME=$(pwd)/src/fsps/libfsps\n')
 import numpy as np
 import gc
 
