@@ -149,7 +149,7 @@ def test_FSPSPhotometryCreator():
 
 def test_FSPSSedModeler():
     os.system('pip uninstall fsps')
-    os.system('git clone --recursive https://github.com/dfm/python-fsps.git /opt/hostedtoolcache/Python')
+    os.system('git clone --recursive https://github.com/dfm/python-fsps.git /opt/hostedtoolcache/Python/python-fsps')
     os.system('cd /opt/hostedtoolcache/Python/python-fsps')
     os.system('python -m pip install .')
     DS = RailStage.data_store
