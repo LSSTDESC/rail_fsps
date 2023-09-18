@@ -385,7 +385,7 @@ class FSPSSedModeler(Modeler):
 
             if self.config.sfh_type == 3:
                 assert tabulated_sfhs is not None
-                if self.config.zcontinuous == 3:
+                if self.config.zcontinuous == 3:  # pragma: no cover
                     # age_array, sfr_array, metal_array = np.loadtxt(tabulated_sfh_files[i], usecols=(0, 1, 2),
                     #                                                unpack=True)
                     age_array, sfr_array, metal_array = tabulated_sfhs[i]
@@ -394,7 +394,7 @@ class FSPSSedModeler(Modeler):
                     # age_array, sfr_array = np.loadtxt(tabulated_sfh_file[i], usecols=(0, 1), unpack=True)
                     age_array, sfr_array = tabulated_sfhs[i]
                     sp.set_tabular_sfh(age_array, sfr_array, Z=None)
-                else:
+                else:  # pragma: no cover
                     raise ValueError
 
             if self.config.smooth_lsf:
@@ -441,7 +441,6 @@ class FSPSSedModeler(Modeler):
         model: ModelHandle
             ModelHandle storing the rest-frame SED models
         """
-        print('ciao')
         self.set_data('input', input_data)
         self.run()
         self.finalize()
