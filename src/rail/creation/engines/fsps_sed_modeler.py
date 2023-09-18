@@ -4,7 +4,7 @@ from rail.core.data import ModelHandle, Hdf5Handle
 from ceci.config import StageParameter as Param
 try:
     import fsps
-except RuntimeError:
+except RuntimeError: # pragma: no cover
     print('Install FSPS with the following commands:\n'
           'pip uninstall fsps\n'
           'git clone --recursive https://github.com/dfm/python-fsps.git\n'

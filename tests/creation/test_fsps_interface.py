@@ -19,10 +19,22 @@ default_rail_fsps_files_folder = os.path.join(RAIL_FSPS_DIR, 'rail', 'examples_d
     "settings,error",
     [
         ({"min_wavelength": -1}, ValueError),
+    ],
+)
+def test_FSPSSedModeler_bad_min_wavelength(settings, error):
+    """Test bad wavelength range that should raise Value and Type errors."""
+    with pytest.raises(error):
+        FSPSSedModeler.make_stage(name='FSPSSedModeler', **settings)
+
+
+@pytest.mark.parametrize(
+    "settings,error",
+    [
+        ({"min_wavelength": 3000}, ValueError),
         ({"max_wavelength": -1}, ValueError),
     ],
 )
-def test_FSPSSedModeler_bad_wavelength_range(settings, error):
+def test_FSPSSedModeler_bad_max_wavelength(settings, error):
     """Test bad wavelength range that should raise Value and Type errors."""
     with pytest.raises(error):
         FSPSSedModeler.make_stage(name='FSPSSedModeler', **settings)
@@ -149,11 +161,26 @@ def test_FSPSPhotometryCreator():
     assert len(fspsphotometry.data['apparent_mags']) == 10
 
 
+def test_FSPSPhotometryCreator_noPlanck():
+    DS = RailStage.data_store
+    DS.__class__.allow_overwrite = True
+    trainFile = os.path.join(default_rail_fsps_files_folder, 'model_FSPSSedModeler.hdf5')
+    training_data = DS.read_file("training_data", TableHandle, trainFile)
+    fspsphotometrycreator = FSPSPhotometryCreator.make_stage(redshifts_key='redshifts',
+                                                             restframe_sed_key='restframe_seds',
+                                                             restframe_wave_key='restframe_wavelengths',
+                                                             apparent_mags_key='apparent_mags',
+                                                             filter_folder=os.path.join(default_rail_fsps_files_folder,
+                                                                                        'filters'),
+                                                             instrument_name='lsst', wavebands='u,g,r,i,z,y',
+                                                             filter_wave_key='wave', filter_transm_key='transmission',
+                                                             Om0=0.3, Ode0=0.7, w0=-1, wa=0.0, h=0.7,
+                                                             use_planck_cosmology=False, physical_units=True)
+    fspsphotometry = fspsphotometrycreator.sample(input_data=training_data)
+    assert len(fspsphotometry.data['apparent_mags']) == 10
+
+
 def test_FSPSSedModeler():
-    #subprocess.run(["pip", "uninstall", "fsps"], capture_output=True)
-    #subprocess.run(["git", "clone", "--recursive", "https://github.com/dfm/python-fsps.git",
-    #                "/opt/hostedtoolcache/Python/python-fsps"], capture_output=True)
-    #subprocess.run(["python", "-m", "pip", "install", "/opt/hostedtoolcache/Python/python-fsps/setup.py"])
     DS = RailStage.data_store
     DS.__class__.allow_overwrite = True
     trainFile = os.path.join(default_rail_fsps_files_folder, 'input_galaxy_properties_fsps.hdf5')
