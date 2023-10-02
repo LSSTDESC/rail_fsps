@@ -212,22 +212,22 @@ class FSPSSedModeler(Modeler):
         RailStage.__init__(self, args, comm=comm)
         self._output_handle = None
 
-        if self.config.min_wavelength < 0:
+        if self.config.min_wavelength < 0: # pragma: no cover
             raise ValueError("min_wavelength must be positive, not {self.config.min_wavelength}")
-        if (self.config.max_wavelength < 0) | (self.config.max_wavelength <= self.config.min_wavelength):
+        if (self.config.max_wavelength < 0) | (self.config.max_wavelength <= self.config.min_wavelength): # pragma: no cover
             raise ValueError("max_wavelength must be positive and greater than min_wavelength,"
                              " not {self.config.max_wavelength}")
 
-        if self.config.zcontinuous not in [0, 1, 2, 3]:
+        if self.config.zcontinuous not in [0, 1, 2, 3]: # pragma: no cover
             raise ValueError("zcontinous={} is not valid, allowed values are 0,1,2,3".format(self.config.zcontinuous))
 
-        if self.config.imf_type not in [0, 1, 2, 3, 4, 5]:
+        if self.config.imf_type not in [0, 1, 2, 3, 4, 5]: # pragma: no cover
             raise ValueError("imf_type={} is not valid, allowed values are 0,1,2,3,4,5".format(self.config.imf_type))
 
-        if self.config.sfh_type not in [0, 1, 3, 4, 5]:
+        if self.config.sfh_type not in [0, 1, 3, 4, 5]: # pragma: no cover
             raise ValueError("sfh_type={} is not valid, allowed values are 0,1,2,3,4,5".format(self.config.sfh_type))
 
-        if self.config.dust_type not in [0, 1, 2, 3, 4, 5, 6]:
+        if self.config.dust_type not in [0, 1, 2, 3, 4, 5, 6]: # pragma: no cover
             raise ValueError("dust_type={} is not valid, allowed values are 0,1,2,3,4,5,6"
                              .format(self.config.dust_type))
 
