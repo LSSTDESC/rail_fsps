@@ -1,14 +1,16 @@
 import os
 import subprocess
+
 if "SPS_HOME" not in os.environ:
     os.environ["SPS_HOME"] = "/opt/hostedtoolcache/Python/fsps"
     subprocess.run(["git", "clone", "https://github.com/cconroy20/fsps.git",
                     "/opt/hostedtoolcache/Python/fsps"], capture_output=True)
-from rail.creation.engines import FSPSSedModeler, FSPSPhotometryCreator
+
 import pytest
 import rail.fsps
-from rail.core.stage import RailStage
 from rail.core.data import TableHandle
+from rail.core.stage import RailStage
+from rail.creation.engines import fsps_photometry_creator, fsps_sed_modeler
 
 RAIL_FSPS_DIR = os.path.abspath(os.path.join(os.path.dirname(rail.fsps.__file__), '..', '..'))
 default_rail_fsps_files_folder = os.path.join(RAIL_FSPS_DIR, 'rail', 'examples_data', 'creation_data', 'data',
@@ -24,7 +26,7 @@ default_rail_fsps_files_folder = os.path.join(RAIL_FSPS_DIR, 'rail', 'examples_d
 def test_FSPSSedModeler_bad_min_wavelength(settings, error):
     """Test bad wavelength range that should raise Value and Type errors."""
     with pytest.raises(error):
-        FSPSSedModeler.make_stage(name='FSPSSedModeler', **settings)
+        fsps_sed_modeler.FSPSSedModeler.make_stage(name='FSPSSedModeler', **settings)
 
 
 @pytest.mark.parametrize(
@@ -37,7 +39,7 @@ def test_FSPSSedModeler_bad_min_wavelength(settings, error):
 def test_FSPSSedModeler_bad_max_wavelength(settings, error):
     """Test bad wavelength range that should raise Value and Type errors."""
     with pytest.raises(error):
-        FSPSSedModeler.make_stage(name='FSPSSedModeler', **settings)
+        fsps_sed_modeler.FSPSSedModeler.make_stage(name='FSPSSedModeler', **settings)
 
 
 @pytest.mark.parametrize(
@@ -49,7 +51,7 @@ def test_FSPSSedModeler_bad_max_wavelength(settings, error):
 def test_FSPSSedModeler_bad_zcontinous(settings, error):
     """Test bad wavelength range that should raise Value and Type errors."""
     with pytest.raises(error):
-        FSPSSedModeler.make_stage(name='FSPSSedModeler', **settings)
+        fsps_sed_modeler.FSPSSedModeler.make_stage(name='FSPSSedModeler', **settings)
 
 
 @pytest.mark.parametrize(
@@ -61,7 +63,7 @@ def test_FSPSSedModeler_bad_zcontinous(settings, error):
 def test_FSPSSedModeler_bad_imf_type(settings, error):
     """Test bad wavelength range that should raise Value and Type errors."""
     with pytest.raises(error):
-        FSPSSedModeler.make_stage(name='FSPSSedModeler', **settings)
+        fsps_sed_modeler.FSPSSedModeler.make_stage(name='FSPSSedModeler', **settings)
 
 
 @pytest.mark.parametrize(
@@ -73,7 +75,7 @@ def test_FSPSSedModeler_bad_imf_type(settings, error):
 def test_FSPSSedModeler_bad_sfh_type(settings, error):
     """Test bad wavelength range that should raise Value and Type errors."""
     with pytest.raises(error):
-        FSPSSedModeler.make_stage(name='FSPSSedModeler', **settings)
+        fsps_sed_modeler.FSPSSedModeler.make_stage(name='FSPSSedModeler', **settings)
 
 
 @pytest.mark.parametrize(
@@ -85,7 +87,7 @@ def test_FSPSSedModeler_bad_sfh_type(settings, error):
 def test_FSPSSedModeler_bad_dust_type(settings, error):
     """Test bad wavelength range that should raise Value and Type errors."""
     with pytest.raises(error):
-        FSPSSedModeler.make_stage(name='FSPSSedModeler', **settings)
+        fsps_sed_modeler.FSPSSedModeler.make_stage(name='FSPSSedModeler', **settings)
 
 
 @pytest.mark.parametrize(
@@ -97,7 +99,7 @@ def test_FSPSSedModeler_bad_dust_type(settings, error):
 def test_FSPSPhotometryCreator_bad_filter_folder(settings, error):
     """Test bad filter folder that should raise OS errors."""
     with pytest.raises(error):
-        FSPSPhotometryCreator.make_stage(name='FSPSPhotometryCreator', **settings)
+        fsps_photometry_creator.FSPSPhotometryCreator.make_stage(name='FSPSPhotometryCreator', **settings)
 
 
 @pytest.mark.parametrize(
@@ -109,7 +111,7 @@ def test_FSPSPhotometryCreator_bad_filter_folder(settings, error):
 def test_FSPSPhotometryCreator_bad_Om0(settings, error):
     """Test bad filter folder that should raise Value errors."""
     with pytest.raises(error):
-        FSPSPhotometryCreator.make_stage(name='FSPSPhotometryCreator',
+        fsps_photometry_creator.FSPSPhotometryCreator.make_stage(name='FSPSPhotometryCreator',
                                          filter_folder=os.path.join(default_rail_fsps_files_folder, 'filters'),
                                          **settings)
 
@@ -123,7 +125,7 @@ def test_FSPSPhotometryCreator_bad_Om0(settings, error):
 def test_FSPSPhotometryCreator_bad_Ode0(settings, error):
     """Test bad filter folder that should raise Value errors."""
     with pytest.raises(error):
-        FSPSPhotometryCreator.make_stage(name='FSPSPhotometryCreator',
+        fsps_photometry_creator.FSPSPhotometryCreator.make_stage(name='FSPSPhotometryCreator',
                                          filter_folder=os.path.join(default_rail_fsps_files_folder, 'filters'),
                                          **settings)
 
@@ -137,7 +139,7 @@ def test_FSPSPhotometryCreator_bad_Ode0(settings, error):
 def test_FSPSPhotometryCreator_bad_h(settings, error):
     """Test bad filter folder that should raise Value errors."""
     with pytest.raises(error):
-        FSPSPhotometryCreator.make_stage(name='FSPSPhotometryCreator',
+        fsps_photometry_creator.FSPSPhotometryCreator.make_stage(name='FSPSPhotometryCreator',
                                          filter_folder=os.path.join(default_rail_fsps_files_folder, 'filters'),
                                          **settings)
 
@@ -147,7 +149,7 @@ def test_FSPSPhotometryCreator():
     DS.__class__.allow_overwrite = True
     trainFile = os.path.join(default_rail_fsps_files_folder, 'model_FSPSSedModeler.hdf5')
     training_data = DS.read_file("training_data", TableHandle, trainFile)
-    fspsphotometrycreator = FSPSPhotometryCreator.make_stage(redshifts_key='redshifts',
+    fspsphotometrycreator = fsps_photometry_creator.FSPSPhotometryCreator.make_stage(redshifts_key='redshifts',
                                                              restframe_sed_key='restframe_seds',
                                                              restframe_wave_key='restframe_wavelengths',
                                                              apparent_mags_key='apparent_mags',
@@ -166,7 +168,7 @@ def test_FSPSPhotometryCreator_noPlanck():
     DS.__class__.allow_overwrite = True
     trainFile = os.path.join(default_rail_fsps_files_folder, 'model_FSPSSedModeler.hdf5')
     training_data = DS.read_file("training_data", TableHandle, trainFile)
-    fspsphotometrycreator = FSPSPhotometryCreator.make_stage(redshifts_key='redshifts',
+    fspsphotometrycreator = fsps_photometry_creator.FSPSPhotometryCreator.make_stage(redshifts_key='redshifts',
                                                              restframe_sed_key='restframe_seds',
                                                              restframe_wave_key='restframe_wavelengths',
                                                              apparent_mags_key='apparent_mags',
@@ -185,7 +187,7 @@ def test_FSPSSedModeler():
     DS.__class__.allow_overwrite = True
     trainFile = os.path.join(default_rail_fsps_files_folder, 'input_galaxy_properties_fsps.hdf5')
     training_data = DS.read_file("training_data", TableHandle, trainFile)
-    fspssedmodeler = FSPSSedModeler.make_stage(chunk_size=10, hdf5_groupname='model', name='FSPSSedModeler',
+    fspssedmodeler = fsps_sed_modeler.FSPSSedModeler.make_stage(chunk_size=10, hdf5_groupname='model', name='FSPSSedModeler',
                                                compute_vega_mags=False, vactoair_flag=False,
                                                zcontinuous=1, add_agb_dust_model=True,
                                                add_dust_emission=True, add_igm_absorption=True,
@@ -227,7 +229,7 @@ def test_FSPSSedModeler_smooth_lsf():
     DS.__class__.allow_overwrite = True
     trainFile = os.path.join(default_rail_fsps_files_folder, 'input_galaxy_properties_fsps.hdf5')
     training_data = DS.read_file("training_data", TableHandle, trainFile)
-    fspssedmodeler = FSPSSedModeler.make_stage(chunk_size=10, hdf5_groupname='model', name='FSPSSedModeler',
+    fspssedmodeler = fsps_sed_modeler.FSPSSedModeler.make_stage(chunk_size=10, hdf5_groupname='model', name='FSPSSedModeler',
                                                compute_vega_mags=False, vactoair_flag=False,
                                                zcontinuous=1, add_agb_dust_model=True,
                                                add_dust_emission=True, add_igm_absorption=True,
