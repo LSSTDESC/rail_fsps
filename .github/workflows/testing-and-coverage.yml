@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.8', '3.9', '3.10']
+        python-version: ['3.9', '3.10', '3.11']
 
     steps:
     - uses: actions/checkout@v3
@@ -27,12 +27,11 @@ jobs:
       run: |
         sudo apt-get update
         python -m pip install --upgrade pip
-        pip install wheel numpy
         pip install .
         pip install .[dev]
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Run unit tests with pytest
       run: |
-        python -m pytest tests --cov=hub --cov-report=xml
+        python -m pytest tests --cov=fsps --cov-report=xml
     - name: Upload coverage report to codecov
       uses: codecov/codecov-action@v3
