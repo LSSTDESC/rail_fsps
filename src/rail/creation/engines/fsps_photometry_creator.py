@@ -3,7 +3,7 @@ from rail.core.stage import RailStage
 from rail.core.data import Hdf5Handle
 from ceci.config import StageParameter as Param
 import numpy as np
-from rail.utils.core_utils import find_rail_file
+from rail.utils.path_utils import find_rail_file
 from astropy.cosmology import Planck15, w0waCDM
 from scipy import interpolate
 import os
