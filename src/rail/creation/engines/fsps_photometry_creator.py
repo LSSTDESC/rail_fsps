@@ -61,7 +61,7 @@ class FSPSPhotometryCreator(Creator):
         args:
         comm:
         """
-        super().__init__(self, args, **kwargs)
+        super().__init__(args, **kwargs)
 
         if not os.path.isdir(self.config.filter_folder):
             raise OSError("File {self.config.filter_folder} not found")

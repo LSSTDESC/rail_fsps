@@ -209,7 +209,7 @@ class FSPSSedModeler(Modeler):
         comm:
 
         """
-        super().__init__(self, args, **kwargs)
+        super().__init__(args, **kwargs)
         self._output_handle = None
 
         if self.config.min_wavelength < 0: # pragma: no cover
