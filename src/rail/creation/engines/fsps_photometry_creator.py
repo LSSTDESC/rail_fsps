@@ -51,7 +51,7 @@ class FSPSPhotometryCreator(Creator):
     inputs = [("model", Hdf5Handle)]
     outputs = [("output", Hdf5Handle)]
 
-    def __init__(self, args, comm=None):
+    def __init__(self, args, **kwargs):
         """
         Initialize class.
         The _b and _c tuples for jax are composed of None or 0, depending on whether you don't or do want the
@@ -61,7 +61,7 @@ class FSPSPhotometryCreator(Creator):
         args:
         comm:
         """
-        RailStage.__init__(self, args, comm=comm)
+        super().__init__(self, args, **kwargs)
 
         if not os.path.isdir(self.config.filter_folder):
             raise OSError("File {self.config.filter_folder} not found")

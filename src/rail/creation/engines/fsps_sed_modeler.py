@@ -198,7 +198,7 @@ class FSPSSedModeler(Modeler):
     # outputs = [("model", ModelHandle)]
     outputs = [("model", Hdf5Handle)]
 
-    def __init__(self, args, comm=None):
+    def __init__(self, args, **kwargs):
         """
         This function initializes the FSPSSedModeler class and checks that the provided parameters are within the
         allowed ranges.
@@ -209,7 +209,7 @@ class FSPSSedModeler(Modeler):
         comm:
 
         """
-        RailStage.__init__(self, args, comm=comm)
+        super().__init__(self, args, **kwargs)
         self._output_handle = None
 
         if self.config.min_wavelength < 0: # pragma: no cover
