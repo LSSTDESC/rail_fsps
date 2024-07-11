@@ -18,7 +18,7 @@ dynamic = ["version"]
 
 dependencies = [
     "fsps",
-    "pz-rail-base",
+    "ceci2 @ https://github.com/LSSTDESC/rail_base",
     "astropy",
     "h5py"
 ]
