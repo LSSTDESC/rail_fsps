@@ -16,20 +16,22 @@ import gc
 
 
 class FSPSSedModeler(Modeler):
-    r"""
+    """
     Derived class of Modeler for creating a single galaxy rest-frame SED model using FSPS (Conroy08).
 
-    Notes
-    -----
     Only the most important parameters are provided via config_options. The remaining ones from FSPS can be
     provided when creating the rest-frame SED model.
 
     Install FSPS with the following commands:
-    pip uninstall fsps
-    git clone --recursive https://github.com/dfm/python-fsps.git
-    cd python-fsps
-    python -m pip install .
-    export SPS_HOME=$(pwd)/src/fsps/libfsps
+
+    .. code-block:: text
+
+        pip uninstall fsps
+       git clone --recursive https://github.com/dfm/python-fsps.git
+       cd python-fsps
+       python -m pip install .
+       export SPS_HOME=$(pwd)/src/fsps/libfsps
+
     """
 
     name = "FSPS_sed_model"
@@ -454,9 +456,6 @@ class FSPSSedModeler(Modeler):
         Thanks to Josue de Santiago, this function is able to run in parallel via mpi by splitting the full sample in
         chunks of user-defined size.
 
-        Parameters
-        ----------
-
         """
         iterator = self.input_iterator('input')
         first = True
@@ -472,20 +471,6 @@ class FSPSSedModeler(Modeler):
         self._finalize_run()
 
     def _process_chunk(self, start, end, data, first):
-        """
-        Calculate the restframe SEDs for a chunk of galaxies using the input parameters.
-
-        Parameters
-        ----------
-        start
-        end
-        data
-        first
-
-        Returns
-        -------
-
-        """
         redshifts = data[self.config.redshifts_key][()]
         stellar_ages = data[self.config.stellar_ages_key][()]
         stellar_metallicities = data[self.config.stellar_metallicities_key][()]
@@ -540,37 +525,12 @@ class FSPSSedModeler(Modeler):
         self._do_chunk_output(output_chunk, start, end, first)
 
     def _initialize_run(self):
-        """
-
-        Returns
-        -------
-
-        """
         self._output_handle = None
 
     def _finalize_run(self):
-        """
-
-        Returns
-        -------
-
-        """
         self._output_handle.finalize_write()
 
     def _do_chunk_output(self, output_chunk, start, end, first):
-        """
-
-        Parameters
-        ----------
-        output_chunk
-        start
-        end
-        first
-
-        Returns
-        -------
-
-        """
         if first:
             self._output_handle = self.add_handle('model', data = output_chunk)
             self._output_handle.initialize_write(self._input_length, communicator = self.comm)
