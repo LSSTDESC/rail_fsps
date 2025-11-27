@@ -22,6 +22,7 @@ class FSPSPhotometryCreator(Creator):
     """
 
     name = "FSPS_Photometry_Creator"
+    entrypoint_function = "sample"  # the user-facing science function for this class
     default_files_folder = find_rail_file(
         os.path.join("examples_data", "creation_data", "data", "fsps_default_data")
     )
