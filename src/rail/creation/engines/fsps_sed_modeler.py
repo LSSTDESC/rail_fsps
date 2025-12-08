@@ -2,6 +2,7 @@ from ceci.config import StageParameter as Param
 from rail.core.data import Hdf5Handle, ModelHandle
 from rail.core.stage import RailStage
 from rail.creation.engine import Modeler
+import tables_io
 
 try:
     import fsps
@@ -399,6 +400,8 @@ class FSPSSedModeler(Modeler):
     inputs = [("input", Hdf5Handle)]
     # outputs = [("model", ModelHandle)]
     outputs = [("model", Hdf5Handle)]
+
+    _partial_output = {}  # place to store chunked output for when output_mode = return
 
     def __init__(self, args, **kwargs):
         """
@@ -836,13 +839,37 @@ class FSPSSedModeler(Modeler):
         self._output_handle = None
 
     def _finalize_run(self):
-        self._output_handle.finalize_write()
+        if self.config.output_mode != "return":
+            self._output_handle.finalize_write()
+        elif self.config.output_mode != "return":
+            # concatenate the partial output chunks together and add the whole dataset to the data handle
+
+            # turn this into an ordered list by sorting the keys and then appending the data into a sorted list
+            gathered_data = []
+            for key in sorted(self._partial_output.keys()):
+                gathered_data.append(self._partial_output[key])
+
+            self._output_handle.path = None
+            if len(gathered_data) <= 1:
+                # if there is only one entry in the dictionary skip concatenation
+                self._output_handle.set_data(gathered_data[0])
+            else:
+                # concatenate the dictionary of numpy arrays together and add the whole dataset ot the data handle
+                gathered_tables = tables_io.concat_tabledict(gathered_data)
+                self._output_handle.set_data(gathered_tables)
 
     def _do_chunk_output(self, output_chunk, start, end, first):
         if first:
             self._output_handle = self.add_handle("model", data=output_chunk)
-            self._output_handle.initialize_write(
-                self._input_length, communicator=self.comm
-            )
+
+            if self.config.output_mode != "return":
+                self._output_handle.initialize_write(
+                    self._input_length, communicator=self.comm
+                )
         self._output_handle.set_data(output_chunk, partial=True)
-        self._output_handle.write_chunk(start, end)
+
+        # only write if output mode is not return
+        if self.config.output_mode != "return":
+            self._output_handle.write_chunk(start, end)
+        elif self.config.output_mode == "return":
+            self._partial_output[(start, end)] = output_chunk
