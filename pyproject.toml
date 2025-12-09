@@ -21,7 +21,6 @@ dependencies = [
     "pz-rail-base>=1.0.3",
     "astropy",
     "h5py",
-    "tables_io"
 ]
 
 # On a mac, install optional dependencies with `pip install '.[dev]'` (include the single quotes)

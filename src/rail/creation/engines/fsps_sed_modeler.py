@@ -2,7 +2,6 @@ from ceci.config import StageParameter as Param
 from rail.core.data import Hdf5Handle, ModelHandle
 from rail.core.stage import RailStage
 from rail.creation.engine import Modeler
-import tables_io
 
 try:
     import fsps
