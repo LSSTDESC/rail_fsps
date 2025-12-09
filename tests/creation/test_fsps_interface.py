@@ -171,12 +171,13 @@ def test_FSPSPhotometryCreator_bad_h(settings, error):
 
 
 def test_FSPSPhotometryCreator():
-    DS = RailStage.data_store
-    DS.__class__.allow_overwrite = True
+    # DS = RailStage.data_store
+    # DS.__class__.allow_overwrite = True
     trainFile = os.path.join(
         default_rail_fsps_files_folder, "model_FSPSSedModeler.hdf5"
     )
-    training_data = DS.read_file("training_data", TableHandle, trainFile)
+    training_data = TableHandle("training_data", path=trainFile)
+    # training_data = DS.read_file("training_data", TableHandle, trainFile)
     fspsphotometrycreator = fsps_photometry_creator.FSPSPhotometryCreator.make_stage(
         redshifts_key="redshifts",
         restframe_sed_key="restframe_seds",
@@ -200,12 +201,13 @@ def test_FSPSPhotometryCreator():
 
 
 def test_FSPSPhotometryCreator_noPlanck():
-    DS = RailStage.data_store
-    DS.__class__.allow_overwrite = True
+    # DS = RailStage.data_store
+    # DS.__class__.allow_overwrite = True
     trainFile = os.path.join(
         default_rail_fsps_files_folder, "model_FSPSSedModeler.hdf5"
     )
-    training_data = DS.read_file("training_data", TableHandle, trainFile)
+    training_data = TableHandle("training_data", path=trainFile)
+    # training_data = DS.read_file("training_data", TableHandle, trainFile)
     fspsphotometrycreator = fsps_photometry_creator.FSPSPhotometryCreator.make_stage(
         redshifts_key="redshifts",
         restframe_sed_key="restframe_seds",
@@ -229,12 +231,14 @@ def test_FSPSPhotometryCreator_noPlanck():
 
 
 def test_FSPSSedModeler():
-    DS = RailStage.data_store
-    DS.__class__.allow_overwrite = True
+    # DS = RailStage.data_store
+    # DS.__class__.allow_overwrite = True
+    print(os.environ.get("SPS_HOME"))
     trainFile = os.path.join(
         default_rail_fsps_files_folder, "input_galaxy_properties_fsps.hdf5"
     )
-    training_data = DS.read_file("training_data", TableHandle, trainFile)
+    training_data = TableHandle("training_data", path=trainFile)
+    # training_data = DS.read_file("training_data", TableHandle, trainFile)
     fspssedmodeler = fsps_sed_modeler.FSPSSedModeler.make_stage(
         chunk_size=10,
         hdf5_groupname="model",
@@ -324,12 +328,13 @@ def test_FSPSSedModeler():
 
 
 def test_FSPSSedModeler_smooth_lsf():
-    DS = RailStage.data_store
-    DS.__class__.allow_overwrite = True
+    # DS = RailStage.data_store
+    # DS.__class__.allow_overwrite = True
     trainFile = os.path.join(
         default_rail_fsps_files_folder, "input_galaxy_properties_fsps.hdf5"
     )
-    training_data = DS.read_file("training_data", TableHandle, trainFile)
+    training_data = TableHandle("training_data", path=trainFile)
+    # training_data = DS.read_file("training_data", TableHandle, trainFile)
     fspssedmodeler = fsps_sed_modeler.FSPSSedModeler.make_stage(
         chunk_size=10,
         hdf5_groupname="model",
