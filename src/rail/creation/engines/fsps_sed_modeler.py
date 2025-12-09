@@ -841,22 +841,43 @@ class FSPSSedModeler(Modeler):
     def _finalize_run(self):
         if self.config.output_mode != "return":
             self._output_handle.finalize_write()
-        elif self.config.output_mode != "return":
-            # concatenate the partial output chunks together and add the whole dataset to the data handle
-
-            # turn this into an ordered list by sorting the keys and then appending the data into a sorted list
-            gathered_data = []
-            for key in sorted(self._partial_output.keys()):
-                gathered_data.append(self._partial_output[key])
+        elif self.config.output_mode == "return":
 
             self._output_handle.path = None
-            if len(gathered_data) <= 1:
-                # if there is only one entry in the dictionary skip concatenation
-                self._output_handle.set_data(gathered_data[0])
+
+            print(f"Partial output dictionary: {self._partial_output}")
+            chunk_keys = list(sorted(self._partial_output.keys()))
+            if len(chunk_keys) <= 1:
+                # just add the output dictionary to output handle data
+                self._output_handle.set_data(self._partial_output[chunk_keys[0]])
             else:
-                # concatenate the dictionary of numpy arrays together and add the whole dataset ot the data handle
-                gathered_tables = tables_io.concat_tabledict(gathered_data)
-                self._output_handle.set_data(gathered_tables)
+                # turn this into ordered lists of arrays by sorting the keys and then appending the data into a sorted list
+                gathered_sed_data = []
+                gathered_redshifts = []
+                for key in chunk_keys:
+                    gathered_sed_data.append(
+                        self._partial_output[key][self.config.restframe_sed_key]
+                    )
+                    gathered_redshifts.append(
+                        self._partial_output[key][self.config.redshifts_key]
+                    )
+
+                # create the new dictionary with all the data by concatenating redshift and sed arrays
+                # add in the restframe wavelengths separately since they should be the same for each chunk?
+                gathered_data = {}
+                gathered_data[self.config.restframe_wave_key] = self._partial_output[
+                    chunk_keys[0]
+                ][self.config.restframe_wave_key]
+                gathered_data[self.config.restframe_sed_key] = np.concatenate(
+                    gathered_sed_data, axis=0
+                )
+                gathered_data[self.config.redshifts_key] = np.concatenate(
+                    gathered_redshifts, axis=0
+                )
+                self._output_handle.set_data(gathered_data)
+
+            # clear the partial output variable now that it's no longer needed
+            self._partial_output = {}
 
     def _do_chunk_output(self, output_chunk, start, end, first):
         if first:
