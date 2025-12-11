@@ -38,7 +38,7 @@ class FSPSSedModeler(Modeler):
 
     """
 
-    name = "FSPS_sed_model"
+    name = "FSPSSedModeler"
     entrypoint_function = "fit_model"  # the user-facing science function for this class
     config_options = RailStage.config_options.copy()
 
