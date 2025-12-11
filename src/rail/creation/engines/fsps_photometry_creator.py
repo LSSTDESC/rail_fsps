@@ -76,8 +76,7 @@ class FSPSPhotometryCreator(Creator):
         use_planck_cosmology=Param(
             bool,
             False,
-            msg="True to overwrite the cosmological parameters"
-            "to their Planck2015 values",
+            msg="True to overwrite the cosmological parameters to their Planck2015 values",
         ),
         physical_units=Param(bool, False),
         msg="False (True) for rest-frame spectra in units of" "Lsun/Hz (erg/s/Hz)",
