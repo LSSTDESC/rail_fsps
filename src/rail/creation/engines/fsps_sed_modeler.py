@@ -40,6 +40,7 @@ class FSPSSedModeler(Modeler):
 
     name = "FSPSSedModeler"
     entrypoint_function = "fit_model"  # the user-facing science function for this class
+    interactive_function = "fsps_sed_modeler"
     config_options = RailStage.config_options.copy()
 
     config_options.update(
@@ -724,18 +725,18 @@ class FSPSSedModeler(Modeler):
 
         return restframe_wavelengths, restframe_seds
 
-    def fit_model(self, input_data=None):
+    def fit_model(self, input_data, **kwargs) -> Hdf5Handle:
         """
         This function creates rest-frame SED models from an input galaxy population catalog.
 
         Parameters
         ----------
-        input_data: Hdf5Handle
+        input_data : Hdf5Handle
             This is the input catalog in the form of an Hdf5Handle.
 
         Returns
         -------
-        model: ModelHandle
+        Hdf5Handle
             ModelHandle storing the rest-frame SED models
         """
         self.set_data("input", input_data)

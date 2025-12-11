@@ -23,6 +23,7 @@ class FSPSPhotometryCreator(Creator):
 
     name = "FSPSPhotometryCreator"
     entrypoint_function = "sample"  # the user-facing science function for this class
+    interactive_function = "fsps_photometry_creator"
     default_files_folder = find_rail_file(
         os.path.join("examples_data", "creation_data", "data", "fsps_default_data")
     )
@@ -158,7 +159,6 @@ class FSPSPhotometryCreator(Creator):
         -------
         apparent_magnitudes: numpy.array
             Array of shape (n_galaxies, n_bands) containing the computed apparent AB magnitudes
-
         """
 
         apparent_magnitudes = {}
@@ -231,27 +231,26 @@ class FSPSPhotometryCreator(Creator):
 
         return apparent_magnitudes
 
-    def sample(self, seed: int = None, input_data=None, **kwargs):
+    def sample(self, input_data: Hdf5Handle, seed: int = None, **kwargs) -> Hdf5Handle:
         r"""
         Creates observed magnitudes for the population of galaxies and stores them into an Hdf5Handle.
 
         Parameters
         ----------
-        seed: int
-            The random seed to control sampling
-        input_data: Hdf5Handle
+        input_data : Hdf5Handle
             Hdf5Handle containing the rest-frame SED models.
+        seed : int | None, optional
+            The random seed to control sampling, by default None
 
         Returns
         -------
-        output: Hdf5Handle
+        Hdf5Handle
             Hdf5Handle storing the apparent magnitudes and redshifts of galaxies.
 
         Notes
         -----
         This method puts  `seed` into the stage configuration data, which makes them available to other methods.
         It then calls the `run` method. Finally, the `Hdf5Handle` associated to the `output` tag is returned.
-
         """
         self.config["seed"] = seed
         self.config.update(**kwargs)
