@@ -334,7 +334,7 @@ def test_FSPSSedModeler_smooth_lsf():
         default_rail_fsps_files_folder, "input_galaxy_properties_fsps.hdf5"
     )
     training_data = TableHandle("training_data", path=trainFile)
-    # training_data = DS.read_file("training_data", TableHandle, trainFile)
+
     fspssedmodeler = fsps_sed_modeler.FSPSSedModeler.make_stage(
         chunk_size=10,
         hdf5_groupname="model",
