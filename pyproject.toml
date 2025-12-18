@@ -16,12 +16,7 @@ classifiers = [
 ]
 dynamic = ["version"]
 
-dependencies = [
-    "fsps",
-    "pz-rail-base>=1.0.3",
-    "astropy",
-    "h5py",
-]
+dependencies = ["fsps", "pz-rail-base>=2.0.0", "astropy", "h5py"]
 
 # On a mac, install optional dependencies with `pip install '.[dev]'` (include the single quotes)
 [project.optional-dependencies]
@@ -46,7 +41,7 @@ write_to = "src/rail/fsps/_version.py"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts   = ["--cov=rail", "--cov-report=html"]
+addopts = ["--cov=rail", "--cov-report=html"]
 
 [tool.pylint]
 disable = [
