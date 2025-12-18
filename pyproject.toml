@@ -16,7 +16,7 @@ classifiers = [
 ]
 dynamic = ["version"]
 
-dependencies = ["fsps", "pz-rail-base>=2.0.0", "astropy", "h5py"]
+dependencies = ["fsps", "pz-rail-base>=2.0.0-dev", "astropy", "h5py"]
 
 # On a mac, install optional dependencies with `pip install '.[dev]'` (include the single quotes)
 [project.optional-dependencies]
