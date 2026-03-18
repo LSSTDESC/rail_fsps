@@ -43,8 +43,7 @@ def test_FSPSSedModeler_bad_min_wavelength(settings, error):
 @pytest.mark.parametrize(
     "settings,error",
     [
-        ({"min_wavelength": 3000}, ValueError),
-        ({"max_wavelength": 1000}, ValueError),
+        ({"min_wavelength": 3000, "max_wavelength": 1000}, ValueError),
     ],
 )
 def test_FSPSSedModeler_bad_max_wavelength(settings, error):

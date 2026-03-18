@@ -4,6 +4,7 @@ import h5py
 import numpy as np
 from astropy.cosmology import Planck15, w0waCDM
 from ceci.config import StageParameter as Param
+from rail.core.common_params import SHARED_PARAMS
 from rail.core.data import Hdf5Handle
 from rail.core.stage import RailStage
 from rail.creation.engine import Creator
@@ -29,12 +30,7 @@ class FSPSPhotometryCreator(Creator):
     )
     config_options = RailStage.config_options.copy()
     config_options.update(
-        redshift_key=Param(
-            str,
-            "redshifts",
-            msg="Redshift keyword name of the hdf5 dataset "
-            "containing rest-frame SEDs",
-        ),
+        redshift_key=SHARED_PARAMS,
         restframe_sed_key=Param(
             str,
             "restframe_seds",
@@ -60,7 +56,7 @@ class FSPSPhotometryCreator(Creator):
         instrument_name=Param(
             str, "lsst", msg="Instrument name as prefix to filter transmission" " files"
         ),
-        wavebands=Param(str, "u,g,r,i,z,y", msg="Comma-separated list of wavebands"),
+        wavebands=Param(list, ['u','g','r','i','z','y'], msg="Comma-separated list of wavebands"),
         filter_wave_key=Param(str, "wave", msg=""),
         filter_transm_key=Param(str, "transmission", msg=""),
         Om0=Param(float, 0.3, msg="Omega matter at current time"),
@@ -79,8 +75,11 @@ class FSPSPhotometryCreator(Creator):
             False,
             msg="True to overwrite the cosmological parameters to their Planck2015 values",
         ),
-        physical_units=Param(bool, False),
-        msg="False (True) for rest-frame spectra in units of" "Lsun/Hz (erg/s/Hz)",
+        physical_units=Param(
+            bool,
+            False,
+            msg="False (True) for rest-frame spectra in units of" "Lsun/Hz (erg/s/Hz)",
+        ),
     )
 
     inputs = [("model", Hdf5Handle)]
@@ -100,7 +99,7 @@ class FSPSPhotometryCreator(Creator):
 
         if not os.path.isdir(self.config.filter_folder):
             raise OSError("File {self.config.filter_folder} not found")
-        self.wavebands = self.config.wavebands.split(",")
+        self.wavebands = self.config.wavebands.copy()
         filter_wavelengths, filter_transmissions = [], []
         for waveband in self.wavebands:
             with h5py.File(

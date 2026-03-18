@@ -1,4 +1,5 @@
 from ceci.config import StageParameter as Param
+from rail.core.common_params import SHARED_PARAMS
 from rail.core.data import Hdf5Handle
 from rail.core.stage import RailStage
 from rail.creation.engine import Modeler
@@ -44,8 +45,8 @@ class FSPSSedModeler(Modeler):
     config_options = RailStage.config_options.copy()
 
     config_options.update(
-        chunk_size=10000,
-        hdf5_groupname=str,
+        chunk_size=SHARED_PARAMS,
+        hdf5_groupname=SHARED_PARAMS,
         compute_vega_mags=Param(
             bool, False, msg="True uses Vega magnitudes versus AB magnitudes"
         ),
@@ -126,7 +127,7 @@ class FSPSSedModeler(Modeler):
         redshifts_key=Param(
             str, "redshifts", msg="galaxy redshift, dataset keyword name"
         ),
-        zmet_key=Param(
+        Z_met_key=Param(
             str,
             "zmet",
             msg=" The metallicity is specified as an integer ranging "
@@ -188,8 +189,8 @@ class FSPSSedModeler(Modeler):
             "stellar_velocity_dispersion",
             msg="stellar velocity dispersions (km/s), " "dataset keyword name",
         ),
-        min_wavelength=Param(float, 3000, msg="minimum rest-frame wavelength"),
-        max_wavelength=Param(float, 10000, msg="maximum rest-frame wavelength"),
+        min_wavelength=SHARED_PARAMS,
+        max_wavelength=SHARED_PARAMS,
         gas_ionizations_key=Param(
             str, "gas_ionization", msg="gas ionization values dataset keyword name"
         ),
@@ -383,8 +384,11 @@ class FSPSSedModeler(Modeler):
         tabulated_lsf_key=Param(
             str, "tabulated_lsf", msg="tabulated LSF dataset keyword name"
         ),
-        physical_units=Param(bool, False),
-        msg="False (True) for rest-frame spectra in units of" "Lsun/Hz (erg/s/Hz)",
+        physical_units=Param(
+            bool,
+            False,
+            msg="False (True) for rest-frame spectra in units of" "Lsun/Hz (erg/s/Hz)",
+        ),
         restframe_wave_key=Param(
             str,
             "restframe_wavelengths",
@@ -773,7 +777,7 @@ class FSPSSedModeler(Modeler):
         velocity_dispersions = data[self.config.velocity_dispersions_key][()]
         gas_ionizations = data[self.config.gas_ionizations_key][()]
         gas_metallicities = data[self.config.gas_metallicities_key][()]
-        zmet = data[self.config.zmet_key][()]
+        zmet = data[self.config.Z_met_key][()]
         pmetals = data[self.config.pmetals_key][()]
         tau = data[self.config.tau_key][()]
         const = data[self.config.const_key][()]
