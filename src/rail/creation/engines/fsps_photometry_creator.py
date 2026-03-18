@@ -200,13 +200,13 @@ class FSPSPhotometryCreator(Creator):
                     fill_value=0,
                 )
                 filt_interp = interp_function(observedframe_wavelength_in_Hz)
-                numerator = np.trapz(
+                numerator = np.trapezoid(
                     observedframe_sed_erg_s_cm2_Hz
                     * filt_interp
                     / observedframe_wavelength,
                     x=observedframe_wavelength,
                 )
-                denominator = np.trapz(
+                denominator = np.trapezoid(
                     filt_interp / observedframe_wavelength, x=observedframe_wavelength
                 )
                 mag_ab = -2.5 * np.log10(numerator / denominator) - 48.6
