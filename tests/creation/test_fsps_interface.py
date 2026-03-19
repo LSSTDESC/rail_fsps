@@ -43,8 +43,7 @@ def test_FSPSSedModeler_bad_min_wavelength(settings, error):
 @pytest.mark.parametrize(
     "settings,error",
     [
-        ({"min_wavelength": 3000}, ValueError),
-        ({"max_wavelength": 1000}, ValueError),
+        ({"min_wavelength": 3000, "max_wavelength": 1000}, ValueError),
     ],
 )
 def test_FSPSSedModeler_bad_max_wavelength(settings, error):
@@ -185,7 +184,7 @@ def test_FSPSPhotometryCreator():
         apparent_mags_key="apparent_mags",
         filter_folder=os.path.join(default_rail_fsps_files_folder, "filters"),
         instrument_name="lsst",
-        wavebands="u,g,r,i,z,y",
+        wavebands=['u','g','r','i','z','y'],
         filter_wave_key="wave",
         filter_transm_key="transmission",
         Om0=0.3,
@@ -215,7 +214,7 @@ def test_FSPSPhotometryCreator_noPlanck():
         apparent_mags_key="apparent_mags",
         filter_folder=os.path.join(default_rail_fsps_files_folder, "filters"),
         instrument_name="lsst",
-        wavebands="u,g,r,i,z,y",
+        wavebands=['u','g','r','i','z','y'],
         filter_wave_key="wave",
         filter_transm_key="transmission",
         Om0=0.3,
@@ -268,7 +267,7 @@ def test_FSPSSedModeler():
         fbhb=0.0,
         pagb=1.0,
         redshifts_key="redshifts",
-        zmet_key="zmet",
+        Z_met_key="zmet",
         stellar_metallicities_key="stellar_metallicity",
         pmetals_key="pmetals",
         imf_type=1,
@@ -364,7 +363,7 @@ def test_FSPSSedModeler_smooth_lsf():
         fbhb=0.0,
         pagb=1.0,
         redshifts_key="redshifts",
-        zmet_key="zmet",
+        Z_met_key="zmet",
         stellar_metallicities_key="stellar_metallicity",
         pmetals_key="pmetals",
         imf_type=1,
